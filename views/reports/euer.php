@@ -15,7 +15,7 @@ $monthNames = ['', 'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep
     </form>
     <div style="display:flex; gap:8px;">
         <a href="/auswertungen/csv?jahr=<?= $year ?>" class="btn btn-secondary">CSV</a>
-        <a href="/auswertungen/pdf?jahr=<?= $year ?>" class="btn btn-secondary" target="_blank">PDF</a>
+        <a href="/auswertungen/pdf?jahr=<?= $year ?>&amp;_=<?= time() ?>" class="btn btn-secondary" target="_blank">PDF</a>
     </div>
 </div>
 

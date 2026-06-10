@@ -54,7 +54,7 @@ use Nova\Controllers\ReminderController;
                     <td class="num"><?= money((int) $r['fee_cents']) ?></td>
                     <td class="num"><?= money((int) ($r['interest_cents'] ?? 0)) ?></td>
                     <td style="text-align:right; display:flex; gap:6px; justify-content:flex-end;">
-                        <a href="/mahnungen/<?= (int) $r['id'] ?>/pdf" class="btn btn-sm" target="_blank">PDF</a>
+                        <a href="/mahnungen/<?= (int) $r['id'] ?>/pdf?_=<?= time() ?>" class="btn btn-sm" target="_blank">PDF</a>
                         <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('mail-<?= (int) $r['id'] ?>').style.display='block'">E-Mail-Text</button>
                         <form method="post" action="/mahnungen/<?= (int) $r['id'] ?>/senden" data-confirm="Mahnung per E-Mail an den Kunden senden?" style="display:inline">
                             <?= csrf_field() ?>

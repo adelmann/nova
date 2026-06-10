@@ -23,7 +23,7 @@
 <div class="panel">
     <h2>EÜR <?= $year ?></h2>
     <p><a href="/auswertungen/csv?jahr=<?= $year ?>" class="btn btn-secondary">EÜR (CSV)</a>
-       <a href="/auswertungen/pdf?jahr=<?= $year ?>" class="btn btn-secondary" target="_blank">EÜR (PDF)</a></p>
+       <a href="/auswertungen/pdf?jahr=<?= $year ?>&amp;_=<?= time() ?>" class="btn btn-secondary" target="_blank">EÜR (PDF)</a></p>
 </div>
 
 <div class="panel">

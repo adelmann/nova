@@ -11,10 +11,10 @@ $open   = (int) $inv['gross_total_cents'] - (int) $inv['paid_total_cents'];
 <div class="toolbar">
     <a href="/rechnungen" class="btn btn-secondary btn-sm">← Zurück</a>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <a href="/rechnungen/<?= (int) $inv['id'] ?>/pdf" class="btn btn-sm" target="_blank">PDF</a>
+        <a href="/rechnungen/<?= (int) $inv['id'] ?>/pdf?_=<?= time() ?>" class="btn btn-sm" target="_blank">PDF</a>
         <?php if ($locked): ?>
             <a href="/rechnungen/<?= (int) $inv['id'] ?>/xrechnung" class="btn btn-secondary btn-sm">XRechnung (XML)</a>
-            <a href="/rechnungen/<?= (int) $inv['id'] ?>/zugferd" class="btn btn-secondary btn-sm" target="_blank">ZUGFeRD-PDF</a>
+            <a href="/rechnungen/<?= (int) $inv['id'] ?>/zugferd?_=<?= time() ?>" class="btn btn-secondary btn-sm" target="_blank">ZUGFeRD-PDF</a>
         <?php endif; ?>
         <?php if (can('manage_sales')): ?>
             <?php if ($locked && $inv['status'] !== 'cancelled'): ?>

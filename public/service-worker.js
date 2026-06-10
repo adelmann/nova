@@ -1,7 +1,7 @@
 /* Nova Service Worker – macht die App installierbar (PWA).
    Wichtig: Es werden NUR statische Assets gecacht (CSS/JS/Icons), niemals
    HTML-Seiten, PDFs oder Daten – die enthalten vertrauliche/dynamische Inhalte. */
-const CACHE = 'nova-static-v1';
+const CACHE = 'nova-static-v2';
 const ASSETS = [
     '/assets/css/app.css',
     '/assets/js/app.js',

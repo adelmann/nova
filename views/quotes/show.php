@@ -8,7 +8,7 @@ $badge  = ['draft' => 'draft', 'sent' => 'sent', 'accepted' => 'paid', 'rejected
 <div class="toolbar">
     <a href="/angebote" class="btn btn-secondary btn-sm">← Zurück</a>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <a href="/angebote/<?= (int) $q['id'] ?>/pdf" class="btn btn-sm" target="_blank">PDF</a>
+        <a href="/angebote/<?= (int) $q['id'] ?>/pdf?_=<?= time() ?>" class="btn btn-sm" target="_blank">PDF</a>
         <form method="post" action="/angebote/<?= (int) $q['id'] ?>/senden" data-confirm="Angebot per E-Mail an den Kunden senden?">
             <?= csrf_field() ?>
             <button type="submit" class="btn btn-sm">✉ Per E-Mail senden</button>
