@@ -42,10 +42,19 @@ final class UpdateController extends Controller
         try {
             $log = \Nova\Services\UpdateInstaller::run((string) $info['zip_url'], $GLOBALS['nova_config']);
             AuditService::record('update', 'system', 1, ['from' => $info['current']], ['to' => $info['latest']]);
+
+            // Frischen Stand erzwingen, damit die neue Version sofort angezeigt
+            // wird: OPcache leeren (neue Dateien aktiv) und Update-Cache verwerfen
+            // (Banner „Update verfügbar" verschwindet).
+            UpdateService::clearCache();
+            if (function_exists('opcache_reset')) {
+                @opcache_reset();
+            }
+
             Session::flash('success', 'Update auf ' . $info['latest'] . ' installiert. ' . implode(' · ', $log));
         } catch (\Throwable $e) {
             Session::flash('error', 'Update fehlgeschlagen: ' . $e->getMessage() . ' Es wurde vorab ein Backup angelegt.');
         }
-        $this->redirect('/einstellungen');
+        $this->redirect('/einstellungen/system');
     }
 }

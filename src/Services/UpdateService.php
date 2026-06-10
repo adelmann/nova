@@ -44,6 +44,12 @@ final class UpdateService
         return is_array($data) ? $data : null;
     }
 
+    /** Verwirft den zwischengespeicherten Update-Stand (z.B. nach einem Update). */
+    public static function clearCache(): void
+    {
+        @unlink(self::cacheFile());
+    }
+
     /** Cache ist älter als die TTL (oder fehlt). */
     public static function isStale(): bool
     {

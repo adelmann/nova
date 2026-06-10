@@ -20,7 +20,7 @@ $appName = $GLOBALS['nova_config']['app_name'] ?? 'Nova';
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
 <body>
-<div class="login-wrap" style="align-items:flex-start; padding-top:5vh;">
+<div class="login-wrap" style="justify-content:flex-start; padding-top:5vh;">
     <div class="login-box" style="width:520px;">
         <h1 class="brand-title"><span class="brand-mark" aria-hidden="true"></span><?= e($appName) ?> einrichten</h1>
         <p class="sub">Willkommen! Lege deinen Zugang und die Firmen-Basisdaten an. Das geht später unter „Einstellungen" jederzeit.</p>
