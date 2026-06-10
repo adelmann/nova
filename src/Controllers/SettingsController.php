@@ -194,10 +194,31 @@ final class SettingsController extends Controller
             'backup_dir'   => $request->str('backup_dir'),
             'backup_interval_hours'       => max(0, $request->int('backup_interval_hours', 24)),
             'backup_email_interval_hours' => max(0, $request->int('backup_email_interval_hours', 24)),
+            // Cloud-Ziele (nicht-geheime Felder immer übernehmen)
+            'backup_webdav_url'  => $request->str('backup_webdav_url'),
+            'backup_webdav_user' => $request->str('backup_webdav_user'),
+            'backup_s3_endpoint' => $request->str('backup_s3_endpoint'),
+            'backup_s3_region'   => $request->str('backup_s3_region'),
+            'backup_s3_bucket'   => $request->str('backup_s3_bucket'),
+            'backup_s3_key'      => $request->str('backup_s3_key'),
+            'backup_s3_prefix'   => $request->str('backup_s3_prefix'),
+            'backup_ftp_host'    => $request->str('backup_ftp_host'),
+            'backup_ftp_port'    => max(1, $request->int('backup_ftp_port', 21)),
+            'backup_ftp_user'    => $request->str('backup_ftp_user'),
+            'backup_ftp_path'    => $request->str('backup_ftp_path'),
+            'backup_ftp_tls'     => $request->bool('backup_ftp_tls') ? 1 : 0,
+            'backup_dropbox_path' => $request->str('backup_dropbox_path'),
         ];
         $backupPass = $request->str('backup_password');
         if ($backupPass !== '') {
             $data['backup_password'] = $backupPass;
+        }
+        // Geheimnisse nur bei Eingabe aktualisieren.
+        foreach (['backup_webdav_pass', 'backup_s3_secret', 'backup_ftp_pass', 'backup_dropbox_token'] as $secret) {
+            $val = $request->str($secret);
+            if ($val !== '') {
+                $data[$secret] = $val;
+            }
         }
         $token = (string) ($before['backup_token'] ?? '');
         if ($token === '' || $request->bool('regenerate_backup_token')) {

@@ -190,6 +190,11 @@ final class BackupService
             }
         }
 
+        // In konfigurierte Cloud-Ziele hochladen (optional).
+        if (CloudBackupService::anyConfigured($settings)) {
+            $log = array_merge($log, CloudBackupService::upload($zipPath, $settings));
+        }
+
         $log = array_merge($log, self::prune((string) $config['paths']['backups']));
         return $log;
     }

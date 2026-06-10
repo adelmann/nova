@@ -86,6 +86,95 @@ $defaultBackupDir = (string) ($GLOBALS['nova_config']['paths']['backups'] ?? '')
         </div>
     </div>
 
+    <div class="panel">
+        <h2>Cloud-Backup (optional)</h2>
+        <p class="help" style="margin-top:0">Jedes ausgefüllte Ziel erhält nach jeder Sicherung automatisch eine Kopie des ZIPs. Leere Felder = Ziel inaktiv. Passwörter/Schlüssel werden nur bei Eingabe geändert.</p>
+
+        <h3 style="margin:14px 0 6px; font-size:14px;">WebDAV (Nextcloud / ownCloud)</h3>
+        <div class="form-grid">
+            <div class="field full">
+                <label for="backup_webdav_url">WebDAV-Ordner-URL</label>
+                <input type="text" id="backup_webdav_url" name="backup_webdav_url" value="<?= e($s['backup_webdav_url'] ?? '') ?>" placeholder="https://cloud.example.com/remote.php/dav/files/USER/Nova-Backups">
+            </div>
+            <div class="field">
+                <label for="backup_webdav_user">Benutzer</label>
+                <input type="text" id="backup_webdav_user" name="backup_webdav_user" value="<?= e($s['backup_webdav_user'] ?? '') ?>" autocomplete="off">
+            </div>
+            <div class="field">
+                <label for="backup_webdav_pass">Passwort / App-Passwort</label>
+                <input type="password" id="backup_webdav_pass" name="backup_webdav_pass" value="" autocomplete="new-password" placeholder="<?= !empty($s['backup_webdav_pass']) ? '•••••••• (gespeichert)' : '' ?>">
+            </div>
+        </div>
+
+        <h3 style="margin:18px 0 6px; font-size:14px;">S3-kompatibel (Backblaze B2 / Wasabi / AWS / Hetzner)</h3>
+        <div class="form-grid">
+            <div class="field">
+                <label for="backup_s3_endpoint">Endpoint</label>
+                <input type="text" id="backup_s3_endpoint" name="backup_s3_endpoint" value="<?= e($s['backup_s3_endpoint'] ?? '') ?>" placeholder="s3.eu-central-1.amazonaws.com">
+            </div>
+            <div class="field">
+                <label for="backup_s3_region">Region</label>
+                <input type="text" id="backup_s3_region" name="backup_s3_region" value="<?= e($s['backup_s3_region'] ?? '') ?>" placeholder="eu-central-1">
+            </div>
+            <div class="field">
+                <label for="backup_s3_bucket">Bucket</label>
+                <input type="text" id="backup_s3_bucket" name="backup_s3_bucket" value="<?= e($s['backup_s3_bucket'] ?? '') ?>">
+            </div>
+            <div class="field">
+                <label for="backup_s3_prefix">Ordner/Präfix (optional)</label>
+                <input type="text" id="backup_s3_prefix" name="backup_s3_prefix" value="<?= e($s['backup_s3_prefix'] ?? '') ?>" placeholder="nova-backups">
+            </div>
+            <div class="field">
+                <label for="backup_s3_key">Access Key</label>
+                <input type="text" id="backup_s3_key" name="backup_s3_key" value="<?= e($s['backup_s3_key'] ?? '') ?>" autocomplete="off">
+            </div>
+            <div class="field">
+                <label for="backup_s3_secret">Secret Key</label>
+                <input type="password" id="backup_s3_secret" name="backup_s3_secret" value="" autocomplete="new-password" placeholder="<?= !empty($s['backup_s3_secret']) ? '•••••••• (gespeichert)' : '' ?>">
+            </div>
+        </div>
+
+        <h3 style="margin:18px 0 6px; font-size:14px;">FTP / FTPS</h3>
+        <div class="form-grid">
+            <div class="field">
+                <label for="backup_ftp_host">Host</label>
+                <input type="text" id="backup_ftp_host" name="backup_ftp_host" value="<?= e($s['backup_ftp_host'] ?? '') ?>" placeholder="ftp.example.com">
+            </div>
+            <div class="field">
+                <label for="backup_ftp_port">Port</label>
+                <input type="number" id="backup_ftp_port" name="backup_ftp_port" value="<?= e((string) ($s['backup_ftp_port'] ?? 21)) ?>" min="1" max="65535">
+            </div>
+            <div class="field">
+                <label for="backup_ftp_user">Benutzer</label>
+                <input type="text" id="backup_ftp_user" name="backup_ftp_user" value="<?= e($s['backup_ftp_user'] ?? '') ?>" autocomplete="off">
+            </div>
+            <div class="field">
+                <label for="backup_ftp_pass">Passwort</label>
+                <input type="password" id="backup_ftp_pass" name="backup_ftp_pass" value="" autocomplete="new-password" placeholder="<?= !empty($s['backup_ftp_pass']) ? '•••••••• (gespeichert)' : '' ?>">
+            </div>
+            <div class="field">
+                <label for="backup_ftp_path">Zielordner</label>
+                <input type="text" id="backup_ftp_path" name="backup_ftp_path" value="<?= e($s['backup_ftp_path'] ?? '') ?>" placeholder="/backups/nova">
+            </div>
+            <div class="field">
+                <label class="checkbox" style="margin-top:24px;"><input type="checkbox" name="backup_ftp_tls" value="1" <?= !empty($s['backup_ftp_tls']) ? 'checked' : '' ?>> Verschlüsselt (FTPS/TLS)</label>
+            </div>
+        </div>
+
+        <h3 style="margin:18px 0 6px; font-size:14px;">Dropbox</h3>
+        <div class="form-grid">
+            <div class="field">
+                <label for="backup_dropbox_token">Access-Token</label>
+                <input type="password" id="backup_dropbox_token" name="backup_dropbox_token" value="" autocomplete="new-password" placeholder="<?= !empty($s['backup_dropbox_token']) ? '•••••••• (gespeichert)' : 'sl.… (App-Token)' ?>">
+            </div>
+            <div class="field">
+                <label for="backup_dropbox_path">Zielordner</label>
+                <input type="text" id="backup_dropbox_path" name="backup_dropbox_path" value="<?= e($s['backup_dropbox_path'] ?? '') ?>" placeholder="/Nova-Backups">
+            </div>
+        </div>
+        <span class="help">Dropbox: in der <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">App-Konsole</a> eine App (Scoped, <code>files.content.write</code>) anlegen und ein Access-Token erzeugen.</span>
+    </div>
+
     <div class="form-actions">
         <button type="submit" class="btn">Speichern</button>
     </div>
