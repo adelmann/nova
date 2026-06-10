@@ -6,18 +6,25 @@
  * @var array<string,mixed> $settings
  */
 $s = $settings;
-$logoFile = '';
+// Logo als Base64-Data-URI einbetten – unabhängig von Dateipfad/chroot/Remote,
+// damit es in JEDER PDF zuverlässig erscheint (sonst lässt Dompdf es teils weg).
+$logoSrc = '';
 if (!empty($s['logo_path'])) {
     $abs = ($GLOBALS['nova_config']['paths']['logos'] ?? '') . '/' . $s['logo_path'];
     if (is_file($abs)) {
-        $logoFile = $abs;
+        $data = @file_get_contents($abs);
+        if ($data !== false && $data !== '') {
+            $info = @getimagesizefromstring($data);
+            $mime = is_array($info) && !empty($info['mime']) ? $info['mime'] : 'image/png';
+            $logoSrc = 'data:' . $mime . ';base64,' . base64_encode($data);
+        }
     }
 }
 ?>
 <table class="head">
     <tr>
-        <?php if ($logoFile): ?>
-            <td style="vertical-align:middle; width:1px; white-space:nowrap; padding-right:12px;"><img class="logo" src="<?= e($logoFile) ?>"></td>
+        <?php if ($logoSrc !== ''): ?>
+            <td style="vertical-align:middle; width:1px; white-space:nowrap; padding-right:12px;"><img class="logo" src="<?= $logoSrc ?>"></td>
         <?php endif; ?>
         <td style="vertical-align:middle;"><span class="company-name"><?= e($s['company_name']) ?></span></td>
         <td class="sender">
