@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Nova\Controllers\AboutController;
 use Nova\Controllers\AccountController;
+use Nova\Controllers\AssetController;
 use Nova\Controllers\AssistantController;
 use Nova\Controllers\AuditController;
 use Nova\Controllers\AuthController;
@@ -215,6 +216,15 @@ return static function (Router $r): void {
     $r->get('/dauerausgaben/{id}/bearbeiten', [RecurringExpenseController::class, 'edit'], cap: 'manage_expenses');
     $r->post('/dauerausgaben/{id}', [RecurringExpenseController::class, 'update'], cap: 'manage_expenses');
     $r->post('/dauerausgaben/{id}/loeschen', [RecurringExpenseController::class, 'destroy'], cap: 'manage_expenses');
+
+    // Anlagevermögen & AfA – ansehen (Buchhaltung), ändern (Ausgaben).
+    $r->get('/anlagen', [AssetController::class, 'index'], cap: 'view_accounting');
+    $r->get('/anlagen/neu', [AssetController::class, 'create'], cap: 'manage_expenses');
+    $r->post('/anlagen', [AssetController::class, 'store'], cap: 'manage_expenses');
+    $r->get('/anlagen/{id}', [AssetController::class, 'show'], cap: 'view_accounting');
+    $r->get('/anlagen/{id}/bearbeiten', [AssetController::class, 'edit'], cap: 'manage_expenses');
+    $r->post('/anlagen/{id}', [AssetController::class, 'update'], cap: 'manage_expenses');
+    $r->post('/anlagen/{id}/loeschen', [AssetController::class, 'destroy'], cap: 'manage_expenses');
 
     // Belege – ansehen/herunterladen (Buchhaltung), ändern (Ausgaben).
     $r->get('/belege', [ReceiptController::class, 'index'], cap: 'view_accounting');

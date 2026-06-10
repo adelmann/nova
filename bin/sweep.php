@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 use Nova\Core\DB;
 use Nova\Models\InvoiceRepository;
+use Nova\Services\DepreciationService;
 use Nova\Services\RecurringExpenseService;
 use Nova\Services\RecurringService;
 use Nova\Services\ReminderService;
@@ -33,6 +34,11 @@ foreach (RecurringService::runDue($config) as $line) {
 // Wiederkehrende Ausgaben (Daueraufwendungen) buchen.
 foreach (RecurringExpenseService::runDue() as $line) {
     echo '» Dauerausgabe: ' . $line . "\n";
+}
+
+// Fällige Abschreibungen (AfA) zum Jahresende buchen.
+foreach (DepreciationService::bookDueYears() as $line) {
+    echo '» AfA: ' . $line . "\n";
 }
 
 // Automatische Zahlungserinnerungen (falls aktiviert).

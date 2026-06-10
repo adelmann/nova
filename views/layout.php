@@ -21,6 +21,7 @@ $navGroups = [
         ['/einnahmen',    'Einnahmen',    '↥', 'view_accounting'],
         ['/ausgaben',     'Ausgaben',     '↧', 'view_accounting'],
         ['/dauerausgaben','Dauerausgaben','↺', 'manage_expenses'],
+        ['/anlagen',      'Anlagevermögen','▣', 'view_accounting'],
         ['/lieferanten',  'Lieferanten',  '☷', 'manage_expenses'],
         ['/belege',       'Belege',       '▤', 'view_accounting'],
         ['/bankimport',   'Bankimport',   '↻', 'manage_expenses'],
