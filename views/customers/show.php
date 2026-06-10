@@ -5,6 +5,7 @@ $c = $customer;
 <div class="toolbar">
     <a href="/kunden" class="btn btn-secondary btn-sm">← Zurück</a>
     <div style="display:flex; gap:10px;">
+        <?php if (can('view_accounting')): ?><a href="/offene-posten/kunde/<?= (int) $c['id'] ?>" class="btn btn-secondary btn-sm">Kontoauszug</a><?php endif; ?>
         <a href="/kunden/<?= (int) $c['id'] ?>/bearbeiten" class="btn btn-sm">Bearbeiten</a>
         <?php if (empty($c['archived_at'])): ?>
             <form method="post" action="/kunden/<?= (int) $c['id'] ?>/archivieren" data-confirm="Kunde archivieren? Er wird aus Listen und Auswahlfeldern ausgeblendet, die Historie bleibt erhalten.">

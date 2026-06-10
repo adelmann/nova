@@ -28,6 +28,7 @@ $navGroups = [
         ['/buchhaltung',  'Buchhaltung',  '≣', 'view_accounting'],
     ],
     'Auswertung' => [
+        ['/offene-posten', 'Offene Posten', '⏳', 'view_accounting'],
         ['/auswertungen', 'Auswertungen', '◈', 'view_accounting'],
         ['/exporte',      'Exporte',      '⇩', 'export'],
         ['/protokoll',    'Protokoll',    '⊟', 'view_accounting'],

@@ -22,6 +22,7 @@ use Nova\Controllers\PasswordResetController;
 use Nova\Controllers\PaymentController;
 use Nova\Controllers\ProjectController;
 use Nova\Controllers\QuoteController;
+use Nova\Controllers\ReceivablesController;
 use Nova\Controllers\ReceiptController;
 use Nova\Controllers\RecurringController;
 use Nova\Controllers\RecurringExpenseController;
@@ -236,6 +237,10 @@ return static function (Router $r): void {
 
     // Buchungsjournal.
     $r->get('/buchhaltung', [LedgerController::class, 'index'], cap: 'view_accounting');
+
+    // Offene-Posten-Liste + Kunden-Kontoauszug (Buchhaltung).
+    $r->get('/offene-posten', [ReceivablesController::class, 'index'], cap: 'view_accounting');
+    $r->get('/offene-posten/kunde/{id}', [ReceivablesController::class, 'statement'], cap: 'view_accounting');
 
     // EÜR-Auswertungen.
     $r->get('/auswertungen', [ReportController::class, 'euer'], cap: 'view_accounting');
