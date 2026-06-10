@@ -6,18 +6,13 @@
  * @var array<string,mixed> $settings
  */
 $s = $settings;
-// Logo als Base64-Data-URI einbetten – unabhängig von Dateipfad/chroot/Remote,
-// damit es in JEDER PDF zuverlässig erscheint (sonst lässt Dompdf es teils weg).
+// Logo als Base64-Data-URI einbetten (mit Alpha-Flattening gegen Weiß), damit es
+// in JEDER PDF und in jedem Viewer – auch mobil – zuverlässig erscheint.
 $logoSrc = '';
 if (!empty($s['logo_path'])) {
     $abs = ($GLOBALS['nova_config']['paths']['logos'] ?? '') . '/' . $s['logo_path'];
     if (is_file($abs)) {
-        $data = @file_get_contents($abs);
-        if ($data !== false && $data !== '') {
-            $info = @getimagesizefromstring($data);
-            $mime = is_array($info) && !empty($info['mime']) ? $info['mime'] : 'image/png';
-            $logoSrc = 'data:' . $mime . ';base64,' . base64_encode($data);
-        }
+        $logoSrc = \Nova\Services\PdfService::logoDataUri($abs);
     }
 }
 ?>

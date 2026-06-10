@@ -14,6 +14,45 @@ use Nova\Core\View;
 final class PdfService
 {
     /**
+     * Liefert das Logo als Base64-`data:`-URI für die Einbettung in PDFs.
+     * Transparenz (PNG-Alpha) wird gegen Weiß flachgerechnet, damit keine
+     * SMask entsteht – manche mobile PDF-Viewer rendern maskierte Bilder sonst
+     * nicht (Logo „fehlt"). Gibt '' zurück, wenn die Datei nicht lesbar ist.
+     */
+    public static function logoDataUri(string $absPath): string
+    {
+        $data = @file_get_contents($absPath);
+        if ($data === false || $data === '') {
+            return '';
+        }
+        // Alpha gegen Weiß flatten (robust für alle Viewer). Bei Fehlern: Original.
+        if (function_exists('imagecreatefromstring')) {
+            $src = @imagecreatefromstring($data);
+            if ($src !== false) {
+                $w = imagesx($src);
+                $h = imagesy($src);
+                $canvas = imagecreatetruecolor($w, $h);
+                $white  = imagecolorallocate($canvas, 255, 255, 255);
+                imagefilledrectangle($canvas, 0, 0, $w, $h, $white);
+                imagealphablending($canvas, true);   // Quelle wird auf Weiß geblendet
+                imagecopy($canvas, $src, 0, 0, 0, 0, $w, $h);
+                imagesavealpha($canvas, false);      // ohne Alpha ausgeben -> keine SMask
+                ob_start();
+                imagepng($canvas);
+                $flat = ob_get_clean();
+                imagedestroy($src);
+                imagedestroy($canvas);
+                if (is_string($flat) && $flat !== '') {
+                    return 'data:image/png;base64,' . base64_encode($flat);
+                }
+            }
+        }
+        $info = @getimagesizefromstring($data);
+        $mime = is_array($info) && !empty($info['mime']) ? $info['mime'] : 'image/png';
+        return 'data:' . $mime . ';base64,' . base64_encode($data);
+    }
+
+    /**
      * Rendert ein PDF-Template und gibt die rohen PDF-Bytes zurück.
      *
      * @param array<string,mixed> $data
