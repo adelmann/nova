@@ -61,7 +61,7 @@ $defaultBackupDir = (string) ($GLOBALS['nova_config']['paths']['backups'] ?? '')
     </div>
 </form>
 
-<div class="panel">
+<div class="panel" style="margin-top:28px;">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
         <h2 style="margin:0;">Vorhandene Backups</h2>
         <form method="post" action="/einstellungen/datensicherung/jetzt">
