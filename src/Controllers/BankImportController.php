@@ -9,6 +9,7 @@ use Nova\Core\Format;
 use Nova\Core\Request;
 use Nova\Core\Session;
 use Nova\Models\ExpenseRepository;
+use Nova\Models\ImportProfileRepository;
 use Nova\Models\InvoiceRepository;
 use Nova\Models\PaymentRepository;
 use Nova\Services\AuditService;
@@ -23,7 +24,41 @@ final class BankImportController extends Controller
 {
     public function index(Request $request): void
     {
-        $this->view('bankimport/upload', ['title' => 'Bankimport']);
+        $this->view('bankimport/upload', [
+            'title'    => 'Bankimport',
+            'presets'  => ImportProfileRepository::presets(),
+            'profiles' => (new ImportProfileRepository())->allOrdered(),
+        ]);
+    }
+
+    /** Speichert die aktuelle Spaltenzuordnung als wiederverwendbares Profil. */
+    public function saveProfile(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        $name = trim($request->str('profile_name'));
+        if ($name === '') {
+            Session::flash('error', 'Bitte einen Namen für das Profil angeben.');
+            $this->redirect('/bankimport');
+        }
+        (new ImportProfileRepository())->createFromInput([
+            'name'        => $name,
+            'delimiter'   => $request->str('delimiter', ';') ?: ';',
+            'has_header'  => $request->bool('has_header') ? 1 : 0,
+            'col_date'    => $request->int('col_date', 1),
+            'col_amount'  => $request->int('col_amount', 4),
+            'col_purpose' => $request->int('col_purpose', 3),
+        ]);
+        AuditService::record('create', 'import_profile', null, null, ['name' => $name]);
+        Session::flash('success', 'Import-Profil „' . $name . '" gespeichert.');
+        $this->redirect('/bankimport');
+    }
+
+    public function deleteProfile(Request $request, array $params): void
+    {
+        $this->verifyCsrf($request);
+        (new ImportProfileRepository())->delete((int) $params['id']);
+        Session::flash('success', 'Import-Profil gelöscht.');
+        $this->redirect('/bankimport');
     }
 
     public function preview(Request $request): void

@@ -272,6 +272,8 @@ return static function (Router $r): void {
     $r->get('/bankimport', [BankImportController::class, 'index'], cap: 'manage_expenses');
     $r->post('/bankimport/vorschau', [BankImportController::class, 'preview'], cap: 'manage_expenses');
     $r->post('/bankimport/buchen', [BankImportController::class, 'commit'], cap: 'manage_expenses');
+    $r->post('/bankimport/profil', [BankImportController::class, 'saveProfile'], cap: 'manage_expenses');
+    $r->post('/bankimport/profil/{id}/loeschen', [BankImportController::class, 'deleteProfile'], cap: 'manage_expenses');
 
     // KI-Assistent (optional).
     $r->get('/assistent', [AssistantController::class, 'index'], cap: 'use_assistant');
