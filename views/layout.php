@@ -14,6 +14,7 @@ $navGroups = [
         ['/angebote',     'Angebote',     '✎', 'manage_sales'],
         ['/rechnungen',   'Rechnungen',   '€', 'view_accounting'],
         ['/mahnungen',    'Mahnungen',    '!', 'manage_sales'],
+        ['/katalog',      'Leistungskatalog', '≡', 'manage_sales'],
     ],
     'Finanzen' => [
         ['/einnahmen',    'Einnahmen',    '↥', 'view_accounting'],

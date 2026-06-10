@@ -5,6 +5,20 @@ if ($rows === []) {
     $rows = [['description' => '', 'quantity' => 1, 'unit' => 'Stk', 'unit_price_cents' => 0]];
 }
 ?>
+<?php $catalog = (new \Nova\Models\CatalogItemRepository())->active(); ?>
+<?php if ($catalog !== []): ?>
+    <div class="field" style="max-width:440px; margin-bottom:12px;">
+        <label>Aus Leistungskatalog einfügen</label>
+        <select onchange="novaCatalogAdd(this)">
+            <option value="">– Position wählen –</option>
+            <?php foreach ($catalog as $ci): ?>
+                <option value="<?= e($ci['name']) ?>" data-unit="<?= e($ci['unit']) ?>" data-price="<?= e(amount((int) $ci['unit_price_cents'])) ?>">
+                    <?= e($ci['name']) ?> · <?= money((int) $ci['unit_price_cents']) ?>/<?= e($ci['unit']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+<?php endif; ?>
 <div class="line-items" id="line-items">
     <table class="items-table">
         <thead>

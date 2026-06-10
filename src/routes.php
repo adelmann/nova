@@ -8,6 +8,7 @@ use Nova\Controllers\AssistantController;
 use Nova\Controllers\AuditController;
 use Nova\Controllers\AuthController;
 use Nova\Controllers\BankImportController;
+use Nova\Controllers\CatalogController;
 use Nova\Controllers\CronController;
 use Nova\Controllers\CustomerController;
 use Nova\Controllers\DashboardController;
@@ -133,6 +134,14 @@ return static function (Router $r): void {
     $r->post('/projekte/{id}/leistungen/{itemId}/loeschen', [ProjectController::class, 'deleteItem'], cap: 'manage_sales');
     $r->post('/projekte/{id}/angebot', [ProjectController::class, 'createQuote'], cap: 'manage_sales');
     $r->post('/projekte/{id}/rechnung', [ProjectController::class, 'createInvoice'], cap: 'manage_sales');
+
+    // Leistungskatalog (Vertrieb).
+    $r->get('/katalog', [CatalogController::class, 'index'], cap: 'manage_sales');
+    $r->get('/katalog/neu', [CatalogController::class, 'create'], cap: 'manage_sales');
+    $r->post('/katalog', [CatalogController::class, 'store'], cap: 'manage_sales');
+    $r->get('/katalog/{id}/bearbeiten', [CatalogController::class, 'edit'], cap: 'manage_sales');
+    $r->post('/katalog/{id}', [CatalogController::class, 'update'], cap: 'manage_sales');
+    $r->post('/katalog/{id}/loeschen', [CatalogController::class, 'destroy'], cap: 'manage_sales');
 
     // Angebote (Vertrieb).
     $r->get('/angebote', [QuoteController::class, 'index'], cap: 'manage_sales');

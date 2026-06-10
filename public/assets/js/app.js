@@ -58,6 +58,25 @@
         try { localStorage.setItem('nova-theme', next); } catch (e) {}
     };
 
+    // Position aus dem Leistungskatalog als neue Zeile einfügen.
+    window.novaCatalogAdd = function (sel) {
+        var opt = sel.options[sel.selectedIndex];
+        if (!opt || !opt.value) return;
+        var tpl = document.getElementById('item-row-template');
+        var body = document.getElementById('items-body');
+        if (!tpl || !body) return;
+        var frag = tpl.content.cloneNode(true);
+        var row = frag.querySelector('tr');
+        var d = row.querySelector('input[name="item_description[]"]');
+        var u = row.querySelector('input[name="item_unit[]"]');
+        var p = row.querySelector('input[name="item_unit_price[]"]');
+        if (d) d.value = opt.value;
+        if (u) u.value = opt.getAttribute('data-unit') || 'Stk';
+        if (p) p.value = opt.getAttribute('data-price') || '0,00';
+        body.appendChild(frag);
+        sel.value = '';
+    };
+
     // Bestätigungsdialog für Formulare/Buttons mit data-confirm="Text".
     document.querySelectorAll('[data-confirm]').forEach(function (el) {
         el.addEventListener('submit', function (e) {
