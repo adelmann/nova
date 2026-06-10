@@ -1,0 +1,12 @@
+# Laufzeitdaten und Müll nicht in den Build-Context.
+.git
+storage/db/*.sqlite
+storage/db/*.sqlite-*
+storage/receipts/*
+storage/invoices/*
+storage/backups/*
+storage/logos/*
+.idea
+.vscode
+*.swp
+.DS_Store

@@ -1,0 +1,17 @@
+{
+    "name": "Nova – Business & Buchhaltung",
+    "short_name": "Nova",
+    "description": "Kunden, Angebote, Rechnungen, Ausgaben, Belege und EÜR – selbst gehostet.",
+    "lang": "de",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#f4f5f7",
+    "theme_color": "#2f6fed",
+    "icons": [
+        { "src": "/assets/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "/assets/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "/assets/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

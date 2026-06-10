@@ -1,0 +1,15 @@
+# Nova – Front-Controller-Routing für Apache (Shared Hosting)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Vorhandene Dateien/Verzeichnisse (Assets) direkt ausliefern.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Alles andere an den Front-Controller.
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Verzeichnis-Listing abschalten.
+Options -Indexes

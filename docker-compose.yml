@@ -1,0 +1,22 @@
+# Lokale Entwicklungsumgebung für Nova.
+# Start:   docker compose up --build
+# App:     http://localhost:8000
+# Stopp:   docker compose down
+services:
+  nova:
+    build: .
+    container_name: nova
+    ports:
+      - "8000:8000"
+    volumes:
+      # Projektcode live einbinden (Änderungen sofort wirksam).
+      - .:/app
+      # Hinweis: storage/ liegt im Projektordner und wird mitgemountet,
+      # die SQLite-Datenbank bleibt also auch nach 'down' erhalten.
+    environment:
+      NOVA_ENV: development
+      # Zugangsdaten für den automatisch angelegten ersten Admin:
+      NOVA_ADMIN_EMAIL: admin@nova.local
+      NOVA_ADMIN_PASSWORD: changeme123
+      NOVA_ADMIN_NAME: Andreas
+    restart: unless-stopped

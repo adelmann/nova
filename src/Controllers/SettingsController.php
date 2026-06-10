@@ -1,0 +1,192 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Nova\Controllers;
+
+use Nova\Core\Controller;
+use Nova\Core\Request;
+use Nova\Core\Session;
+use Nova\Models\CompanySettingsRepository;
+use Nova\Services\AuditService;
+use Nova\Services\ReceiptService;
+use Nova\Services\UpdateService;
+
+/**
+ * Einstellungen, aufgeteilt in Abschnitte (Unternehmen, Rechnungen & Steuer,
+ * E-Mail, Datensicherung, System). Jeder Abschnitt hat sein eigenes Formular
+ * und speichert nur seine Felder.
+ */
+final class SettingsController extends Controller
+{
+    // ---- Unternehmen (Firma, Bank, Logo, Rechtliches) ----------------------
+    public function edit(Request $request): void
+    {
+        $this->section('settings/company', 'Einstellungen · Unternehmen');
+    }
+
+    public function update(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        $repo   = new CompanySettingsRepository();
+        $before = $repo->get();
+
+        $data = [
+            'company_name'  => $request->str('company_name'),
+            'owner_name'    => $request->str('owner_name'),
+            'address_line1' => $request->str('address_line1'),
+            'address_line2' => $request->str('address_line2'),
+            'zip'           => $request->str('zip'),
+            'city'          => $request->str('city'),
+            'country'       => $request->str('country', 'Deutschland'),
+            'email'         => $request->str('email'),
+            'phone'         => $request->str('phone'),
+            'website'       => $request->str('website'),
+            'social_media'  => $request->str('social_media'),
+            'tax_number'    => $request->str('tax_number'),
+            'vat_id'        => $request->str('vat_id'),
+            'bank_name'     => $request->str('bank_name'),
+            'iban'          => $request->str('iban'),
+            'bic'           => $request->str('bic'),
+            'imprint_url'   => $request->str('imprint_url'),
+            'privacy_url'   => $request->str('privacy_url'),
+        ];
+
+        $logo = $request->file('logo');
+        if ($logo !== null) {
+            try {
+                $data['logo_path'] = ReceiptService::storeLogo($logo);
+            } catch (\RuntimeException $e) {
+                Session::flash('error', 'Logo-Upload fehlgeschlagen: ' . $e->getMessage());
+                $this->redirect('/einstellungen');
+            }
+        }
+
+        $this->save($repo, $before, $data, '/einstellungen');
+    }
+
+    // ---- Rechnungen & Steuer ----------------------------------------------
+    public function invoicing(Request $request): void
+    {
+        $this->section('settings/invoicing', 'Einstellungen · Rechnungen & Steuer');
+    }
+
+    public function saveInvoicing(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        $repo   = new CompanySettingsRepository();
+        $before = $repo->get();
+
+        $this->save($repo, $before, [
+            'is_kleinunternehmer'   => $request->bool('is_kleinunternehmer') ? 1 : 0,
+            'default_vat_rate'      => $request->int('default_vat_rate', 19),
+            'default_payment_days'  => $request->int('default_payment_days', 14),
+            'invoice_number_format' => $request->str('invoice_number_format', 'RE-{YYYY}-{####}'),
+            'quote_number_format'   => $request->str('quote_number_format', 'AN-{YYYY}-{####}'),
+            'kleinunternehmer_note' => $request->str('kleinunternehmer_note'),
+            'invoice_footer_text'   => $request->str('invoice_footer_text'),
+            'quote_footer_text'     => $request->str('quote_footer_text'),
+            'payment_methods'       => $this->normalizeLines($request->str('payment_methods')),
+        ], '/einstellungen/rechnungen');
+    }
+
+    // ---- E-Mail (SMTP + Signatur + Vorlagen) ------------------------------
+    public function emailSettings(Request $request): void
+    {
+        $this->section('settings/email', 'Einstellungen · E-Mail');
+    }
+
+    public function saveEmail(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        $repo   = new CompanySettingsRepository();
+        $before = $repo->get();
+
+        $enc = $request->str('smtp_encryption', 'tls');
+        $data = [
+            'mail_from_email'       => $request->str('mail_from_email'),
+            'mail_from_name'        => $request->str('mail_from_name'),
+            'smtp_host'             => $request->str('smtp_host'),
+            'smtp_port'             => $request->int('smtp_port', 587),
+            'smtp_user'             => $request->str('smtp_user'),
+            'smtp_encryption'       => in_array($enc, ['none', 'tls', 'ssl'], true) ? $enc : 'tls',
+            'email_signature'       => $request->str('email_signature'),
+            'invoice_email_subject' => $request->str('invoice_email_subject'),
+            'invoice_email_body'    => $request->str('invoice_email_body'),
+            'quote_email_subject'   => $request->str('quote_email_subject'),
+            'quote_email_body'      => $request->str('quote_email_body'),
+        ];
+        $smtpPass = $request->str('smtp_pass');
+        if ($smtpPass !== '') {
+            $data['smtp_pass'] = $smtpPass;
+        }
+
+        $this->save($repo, $before, $data, '/einstellungen/email');
+    }
+
+    // ---- Datensicherung ----------------------------------------------------
+    public function backupSettings(Request $request): void
+    {
+        $this->section('settings/backup', 'Einstellungen · Datensicherung');
+    }
+
+    public function saveBackup(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        $repo   = new CompanySettingsRepository();
+        $before = $repo->get();
+
+        $data = [
+            'backup_email' => $request->str('backup_email'),
+            'backup_dir'   => $request->str('backup_dir'),
+        ];
+        $backupPass = $request->str('backup_password');
+        if ($backupPass !== '') {
+            $data['backup_password'] = $backupPass;
+        }
+        $token = (string) ($before['backup_token'] ?? '');
+        if ($token === '' || $request->bool('regenerate_backup_token')) {
+            $data['backup_token'] = bin2hex(random_bytes(24));
+        }
+
+        $this->save($repo, $before, $data, '/einstellungen/datensicherung');
+    }
+
+    // ---- System (Updates) --------------------------------------------------
+    public function system(Request $request): void
+    {
+        $this->view('settings/system', [
+            'title'    => 'Einstellungen · System',
+            'settings' => (new CompanySettingsRepository())->get(),
+            'update'   => UpdateService::check(false),
+        ]);
+    }
+
+    // ---- Helfer ------------------------------------------------------------
+    private function section(string $template, string $title): void
+    {
+        $this->view($template, [
+            'title'    => $title,
+            'settings' => (new CompanySettingsRepository())->get(),
+        ]);
+    }
+
+    /**
+     * @param array<string,mixed> $before
+     * @param array<string,mixed> $data
+     */
+    private function save(CompanySettingsRepository $repo, array $before, array $data, string $redirect): void
+    {
+        $repo->update($data);
+        AuditService::record('update', 'company_settings', 1, $before, $repo->get());
+        Session::flash('success', 'Einstellungen gespeichert.');
+        $this->redirect($redirect);
+    }
+
+    /** Mehrzeilige Eingabe säubern: leere Zeilen entfernen, trimmen, je Zeile. */
+    private function normalizeLines(string $text): string
+    {
+        $lines = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $text) ?: [])));
+        return implode("\n", $lines);
+    }
+}

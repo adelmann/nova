@@ -1,0 +1,3 @@
+# Niemals direkten Zugriff auf gespeicherte Daten (Belege, DB, Backups).
+Require all denied
+Deny from all

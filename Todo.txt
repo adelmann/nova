@@ -1,0 +1,261 @@
+Baue ein webbasiertes Business- und Buchhaltungstool namens "Nova" für ein nebenberufliches Kleingewerbe unter adelmann-solutions.com.
+
+Ziel:
+Ein lokales bzw. selbst gehostetes Webtool zur Verwaltung von Kunden, Angeboten, Rechnungen, Ausgaben, Belegen, Zahlungen, EÜR-Auswertung und einfachen Buchhaltungsfunktionen.
+
+Wichtig:
+Das Tool soll keine vollständige Steuerberater- oder DATEV-Software ersetzen, aber für ein deutsches Kleingewerbe mit Einnahmen-Überschuss-Rechnung geeignet sein.
+
+Tech Stack:
+- Next.js
+- TypeScript
+- Tailwind CSS
+- PostgreSQL oder SQLite für lokalen Betrieb
+- Prisma ORM
+- Auth.js oder einfache Login-Authentifizierung
+- PDF-Generierung für Angebote, Rechnungen und Mahnungen
+- Datei-Upload für Belege
+- Docker Setup
+- Deployment-fähig für eine Subdomain wie office.adelmann-solutions.com
+
+Kernmodule:
+
+1. Dashboard
+- Umsatz aktuelles Jahr
+- Gewinn aktuelles Jahr
+- offene Rechnungen
+- unbezahlte Ausgaben
+- Einnahmen/Ausgaben pro Monat
+- Kleinunternehmer-Umsatzgrenze als Hinweis
+- To-do-Liste: offene Rechnungen, fehlende Belege, überfällige Zahlungen
+
+2. Kundenverwaltung
+- Firmenname / Name
+- Ansprechpartner
+- Adresse
+- E-Mail
+- Telefonnummer
+- USt-ID optional
+- Kundentyp: Privatkunde / Geschäftskunde
+- Notizen
+
+3. Projekte
+- Projektname
+- Kunde
+- Status
+- Stundensatz
+- Beschreibung
+- Startdatum
+- Enddatum
+- abrechenbare Leistungen
+
+4. Angebote
+- Angebotsnummer
+- Kunde
+- Positionen
+- Netto/Brutto-Logik
+- Kleinunternehmer-Hinweis
+- PDF-Erstellung
+- Status: Entwurf, versendet, angenommen, abgelehnt
+- Aus Angebot Rechnung erzeugen
+
+5. Rechnungen
+- fortlaufende Rechnungsnummern
+- Kunde
+- Rechnungsdatum
+- Leistungsdatum / Leistungszeitraum
+- Positionen
+- Zahlungsziel
+- Status: Entwurf, versendet, bezahlt, überfällig, storniert
+- PDF-Erstellung
+- Kleinunternehmer-Hinweis nach § 19 UStG
+- keine nachträgliche Änderung finalisierter Rechnungen
+- Storno-Rechnung erstellen
+- Zahlung erfassen
+- Mahnung erstellen
+
+6. Ausgaben
+- Datum
+- Lieferant
+- Kategorie
+- Betrag
+- Zahlungsart
+- Beleg-Upload
+- Notiz
+- Status: offen / bezahlt
+- steuerliche Kategorie für EÜR
+
+7. Belegverwaltung
+- Upload von PDF/JPG/PNG
+- Belegtyp: Eingangsrechnung, Quittung, Kontoauszug, Sonstiges
+- Zuordnung zu Ausgabe oder Rechnung
+- einfache Volltextsuche
+- unveränderbares Archiv nach Zuordnung
+- Export aller Belege pro Jahr
+
+8. Buchungsjournal
+- Jede Einnahme und Ausgabe erzeugt automatisch einen Journal-Eintrag
+- Felder:
+  - Datum
+  - Typ: Einnahme / Ausgabe
+  - Referenz
+  - Kategorie
+  - Betrag
+  - Beleg
+  - erstellt am
+  - erstellt von
+- Journal-Einträge dürfen nicht gelöscht werden
+- Korrekturen erfolgen über Gegenbuchungen oder Storno
+
+9. EÜR-Auswertung
+- Einnahmen je Jahr
+- Ausgaben je Jahr
+- Gewinn = Einnahmen - Ausgaben
+- Monatsübersicht
+- Kategorienübersicht
+- Export als CSV
+- Export als PDF
+- Jahresabschluss-Übersicht
+
+10. Steuer- und Compliance-Hinweise
+- Kleinunternehmerregelung aktivierbar
+- Rechnungstext automatisch:
+  "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
+- Hinweis, dass das Tool keine Steuerberatung ersetzt
+- GoBD-nahe Funktionen:
+  - Audit-Log
+  - keine direkte Änderung finalisierter Rechnungen
+  - Änderungsprotokoll
+  - Exportfunktion
+  - Archivierung finaler PDFs
+
+11. E-Rechnung Vorbereitung
+- Eingehende E-Rechnungen als Datei speichern
+- ZUGFeRD/XRechnung später vorbereiten
+- Architektur so bauen, dass XML-Rechnungsformate später ergänzt werden können
+- Hinweis: Seit 2025 müssen Unternehmen in Deutschland grundsätzlich E-Rechnungen im B2B-Bereich empfangen können; Kleinunternehmer haben Erleichterungen bei der Ausstellung, die Empfangspflicht bleibt aber relevant.
+
+12. Mahnwesen
+- offene Rechnungen anzeigen
+- Zahlungserinnerung generieren
+- Mahnung generieren
+- PDF und E-Mail-Text vorbereiten
+- Mahnstufen speichern
+
+13. Einstellungen
+- Unternehmensdaten:
+  - Adelmann Solutions
+  - Name
+  - Adresse
+  - E-Mail
+  - Telefonnummer
+  - Steuernummer optional
+  - Bankverbindung
+  - Logo
+- Rechnungsnummernformat:
+  z.B. RE-2026-0001
+- Angebotsnummernformat:
+  z.B. AN-2026-0001
+- Zahlungsziel
+- Kleinunternehmerregelung ja/nein
+- Standard-Rechnungstexte
+
+14. Exporte
+- CSV Export Einnahmen
+- CSV Export Ausgaben
+- CSV Export Buchungsjournal
+- Jahres-PDF
+- ZIP-Export aller Rechnungen und Belege eines Jahres
+
+15. KI-Assistent optional
+- Freitext zu Rechnung:
+  "Erstelle eine Rechnung für Kunde Müller über 8 Stunden IT-Beratung à 95 Euro."
+- Ausgaben kategorisieren
+- Zusammenfassung: "Wie lief mein Monat?"
+- Fehlende Belege erkennen
+- Offene Rechnungen zusammenfassen
+
+Datenmodell:
+Erstelle Prisma Models für:
+- User
+- CompanySettings
+- Customer
+- Project
+- Quote
+- QuoteItem
+- Invoice
+- InvoiceItem
+- Payment
+- Expense
+- Receipt
+- LedgerEntry
+- AuditLog
+- Reminder
+- NumberSequence
+
+Sicherheitsanforderungen:
+- Login erforderlich
+- Passwörter sicher speichern
+- Datei-Uploads validieren
+- Rollen erstmal einfach: Admin
+- Backups vorbereiten
+- Keine sensiblen Daten im Client speichern
+
+UI:
+- Modernes, schlichtes Dashboard
+- Sidebar Navigation:
+  Dashboard
+  Kunden
+  Projekte
+  Angebote
+  Rechnungen
+  Ausgaben
+  Belege
+  Buchhaltung
+  Auswertungen
+  Einstellungen
+- Mobile brauchbar, aber Desktop-first
+
+Entwicklungsreihenfolge:
+Phase 1:
+- Projektsetup
+- Auth
+- Dashboard-Grundlayout
+- Company Settings
+- Kundenverwaltung
+
+Phase 2:
+- Angebote
+- Rechnungen
+- PDF-Erstellung
+- Rechnungsnummern
+- Zahlungsstatus
+
+Phase 3:
+- Ausgaben
+- Belegupload
+- Buchungsjournal
+- EÜR-Auswertung
+
+Phase 4:
+- Mahnungen
+- Exporte
+- Audit-Log
+- Archivierung
+
+Phase 5:
+- KI-Assistent
+- Bankimport per CSV
+- E-Rechnungs-Vorbereitung
+
+Akzeptanzkriterien:
+- Ich kann Kunden anlegen
+- Ich kann Angebote erstellen
+- Ich kann aus einem Angebot eine Rechnung erzeugen
+- Ich kann Rechnungen als PDF exportieren
+- Ich kann Zahlungseingänge erfassen
+- Ich kann Ausgaben mit Beleg erfassen
+- Ich bekomme eine Jahresübersicht für die EÜR
+- Finalisierte Rechnungen sind nicht direkt änderbar
+- Alle wichtigen Änderungen werden im Audit-Log gespeichert
+- Ich kann alle Daten eines Jahres exportieren

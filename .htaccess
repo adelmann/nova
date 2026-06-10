@@ -1,0 +1,14 @@
+# Fallback, falls der Subdomain-Docroot NICHT direkt auf public/ zeigt.
+# Leitet alle Anfragen in das public/-Verzeichnis um.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Sensible Verzeichnisse niemals ausliefern.
+    RewriteRule ^(src|storage|migrations|bin|vendor|views)(/.*)?$ - [F,L]
+
+    # Bereits auf public/ gerichtete Anfragen unverändert lassen.
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+Options -Indexes

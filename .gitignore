@@ -1,0 +1,23 @@
+# Laufzeitdaten – nicht versionieren
+/storage/db/*.sqlite
+/storage/db/*.sqlite-*
+/storage/receipts/*
+/storage/invoices/*
+/storage/backups/*
+/storage/logos/*
+/storage/cache/*
+
+# Ausnahme: leere Verzeichnisse erhalten
+!/storage/**/.gitkeep
+
+# Konfiguration mit Geheimnissen (falls lokal überschrieben)
+/config.local.php
+
+# Quell-/Arbeitsdateien (z.B. Logo-Originale)
+/tmp/
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/

@@ -1,0 +1,14 @@
+{
+    "name": "adelmann-solutions/nova",
+    "description": "Nova – Business- und Buchhaltungstool für Kleingewerbe (PHP/SQLite)",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-mbstring": "*",
+        "dompdf/dompdf": "^3.0"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
