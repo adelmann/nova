@@ -22,8 +22,8 @@ final class PaymentService
      * @param array<string,mixed> $settings
      * @return array<int,string>
      */
-    /** Bereits umgesetzte Anbieter (PayPal folgt). */
-    private const IMPLEMENTED = ['stripe'];
+    /** Bereits umgesetzte Anbieter. */
+    private const IMPLEMENTED = ['stripe', 'paypal'];
 
     public static function providers(array $settings): array
     {
@@ -66,6 +66,7 @@ final class PaymentService
 
         return match ($provider) {
             'stripe' => self::stripeCheckout($invoice, $amount, $settings, $success, $cancel),
+            'paypal' => self::paypalCheckout($invoice, $amount, $settings, $success . '?provider=paypal', $cancel),
             default  => throw new \RuntimeException('Anbieter nicht verfügbar: ' . $provider),
         };
     }
@@ -201,6 +202,138 @@ final class PaymentService
         if ($method === 'POST') {
             $opts[CURLOPT_POST] = true;
             $opts[CURLOPT_POSTFIELDS] = http_build_query($params);
+        }
+        curl_setopt_array($ch, $opts);
+        $body   = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        return [$status, $body === false ? '' : (string) $body];
+    }
+
+    // ---- PayPal (Orders v2, Capture bei Rückkehr) --------------------------
+    /** Live- bzw. Sandbox-Endpunkt je nach konfiguriertem Modus. */
+    private static function paypalBase(array $settings): string
+    {
+        return ($settings['paypal_mode'] ?? 'sandbox') === 'live'
+            ? 'https://api-m.paypal.com'
+            : 'https://api-m.sandbox.paypal.com';
+    }
+
+    /** Beträge in Cent als PayPal-Dezimalstring ("119.00"). */
+    private static function decimal(int $cents): string
+    {
+        return number_format($cents / 100, 2, '.', '');
+    }
+
+    /** Dezimalstring (PayPal) zurück in Cent. */
+    private static function toCents(string $value): int
+    {
+        return (int) round(((float) $value) * 100);
+    }
+
+    /** @param array<string,mixed> $invoice @param array<string,mixed> $settings */
+    private static function paypalCheckout(array $invoice, int $amount, array $settings, string $success, string $cancel): string
+    {
+        $token = self::paypalToken($settings);
+        $order = [
+            'intent' => 'CAPTURE',
+            'purchase_units' => [[
+                'custom_id'   => (string) $invoice['id'],
+                'description' => 'Rechnung ' . ($invoice['number'] ?: (string) $invoice['id']),
+                'amount'      => ['currency_code' => 'EUR', 'value' => self::decimal($amount)],
+            ]],
+            'application_context' => [
+                'return_url'  => $success,
+                'cancel_url'  => $cancel,
+                'user_action' => 'PAY_NOW',
+                'shipping_preference' => 'NO_SHIPPING',
+            ],
+        ];
+        [$status, $body] = self::paypalApi('POST', '/v2/checkout/orders', $settings, $token, $order);
+        $json = json_decode($body, true);
+        if (($status !== 200 && $status !== 201) || empty($json['links'])) {
+            throw new \RuntimeException('PayPal-Fehler: ' . ($json['message'] ?? ('HTTP ' . $status)));
+        }
+        foreach ($json['links'] as $link) {
+            if (($link['rel'] ?? '') === 'approve') {
+                return (string) $link['href'];
+            }
+        }
+        throw new \RuntimeException('PayPal: kein Freigabe-Link erhalten.');
+    }
+
+    /**
+     * Schließt eine PayPal-Zahlung ab (Capture des Orders) und gibt die für die
+     * Buchung nötigen Werte zurück: invoiceId, Brutto- und Gebührbetrag (Cent)
+     * sowie eine eindeutige Referenz. Gibt null zurück, wenn nicht abgeschlossen.
+     *
+     * @param array<string,mixed> $settings
+     * @return array{invoice_id:int,gross:int,fee:int,ref:string}|null
+     */
+    public static function paypalCapture(string $orderId, array $settings): ?array
+    {
+        if ($orderId === '') {
+            return null;
+        }
+        $token = self::paypalToken($settings);
+        [$status, $body] = self::paypalApi('POST', '/v2/checkout/orders/' . rawurlencode($orderId) . '/capture', $settings, $token, []);
+        $json = json_decode($body, true);
+        if (($status !== 200 && $status !== 201) || ($json['status'] ?? '') !== 'COMPLETED') {
+            return null;
+        }
+        $unit    = $json['purchase_units'][0] ?? [];
+        $capture = $unit['payments']['captures'][0] ?? [];
+        $invoiceId = (int) ($unit['custom_id'] ?? $capture['custom_id'] ?? 0);
+        $gross   = self::toCents((string) ($capture['amount']['value'] ?? '0'));
+        $fee     = self::toCents((string) ($capture['seller_receivable_breakdown']['paypal_fee']['value'] ?? '0'));
+        $ref     = 'paypal:' . (string) ($capture['id'] ?? $orderId);
+        if ($invoiceId === 0 || $gross <= 0) {
+            return null;
+        }
+        return ['invoice_id' => $invoiceId, 'gross' => $gross, 'fee' => $fee, 'ref' => $ref];
+    }
+
+    /** OAuth2-Access-Token (Client-Credentials). */
+    private static function paypalToken(array $settings): string
+    {
+        $ch = curl_init(self::paypalBase($settings) . '/v1/oauth2/token');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_USERPWD        => (string) $settings['paypal_client_id'] . ':' . (string) $settings['paypal_secret'],
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => 'grant_type=client_credentials',
+            CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+        ]);
+        $body   = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $json = json_decode($body === false ? '' : (string) $body, true);
+        if ($status !== 200 || empty($json['access_token'])) {
+            throw new \RuntimeException('PayPal-Anmeldung fehlgeschlagen (HTTP ' . $status . ').');
+        }
+        return (string) $json['access_token'];
+    }
+
+    /**
+     * @param array<string,mixed> $settings
+     * @param array<string,mixed>|null $jsonBody
+     * @return array{0:int,1:string}
+     */
+    private static function paypalApi(string $method, string $path, array $settings, string $token, ?array $jsonBody = null): array
+    {
+        $ch = curl_init(self::paypalBase($settings) . $path);
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_CUSTOMREQUEST  => $method,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $token,
+                'Content-Type: application/json',
+            ],
+        ];
+        if ($jsonBody !== null) {
+            $opts[CURLOPT_POSTFIELDS] = $jsonBody === [] ? '{}' : (string) json_encode($jsonBody);
         }
         curl_setopt_array($ch, $opts);
         $body   = curl_exec($ch);

@@ -45,8 +45,8 @@ $base = $appUrl;
     </div>
 
     <div class="panel">
-        <h2>PayPal <span class="muted" style="font-weight:400">– in Vorbereitung</span></h2>
-        <p class="help" style="margin-top:0">Die Felder kannst du schon hinterlegen; der PayPal-Checkout wird in Kürze aktiviert.</p>
+        <h2>PayPal</h2>
+        <p class="help" style="margin-top:0">Client-ID und Secret aus deiner PayPal-App (Developer-Dashboard) eintragen. Im Modus „Sandbox" wird mit Testkonten gezahlt, „Live" für echte Zahlungen. Ein Webhook ist nicht nötig – die Zahlung wird bei der Rückkehr abgeschlossen und verbucht (inkl. Gebühr).</p>
         <div class="form-grid">
             <div class="field">
                 <label for="paypal_client_id">PayPal Client-ID</label>

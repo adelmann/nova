@@ -63,7 +63,11 @@ final class PaymentController extends Controller
         Response::redirect($url);
     }
 
-    /** Erfolgsseite nach Rückkehr vom Anbieter (Buchung erfolgt per Webhook). */
+    /**
+     * Erfolgsseite nach Rückkehr vom Anbieter. Bei Stripe erfolgt die Buchung
+     * per Webhook; bei PayPal wird die Zahlung hier (bei Rückkehr) abgeschlossen
+     * und verbucht – die Capture-Antwort liefert auch die Gebühr.
+     */
     public function success(Request $request, array $params): void
     {
         $inv = (new InvoiceRepository())->findByPayToken((string) $params['token']);
@@ -71,6 +75,21 @@ final class PaymentController extends Controller
             Response::notFound('Rechnung nicht gefunden.');
             return;
         }
+
+        if ($request->str('provider') === 'paypal') {
+            $orderId  = $request->str('token'); // PayPal hängt ?token=<orderId> an
+            $settings = (new CompanySettingsRepository())->get();
+            try {
+                $cap = PaymentService::paypalCapture($orderId, $settings);
+                if ($cap !== null) {
+                    PaymentService::bookPaid($cap['invoice_id'], $cap['gross'], $cap['fee'], 'paypal', $cap['ref'], $settings);
+                }
+            } catch (\RuntimeException $e) {
+                // Buchung scheitert lautlos – die Bezahlseite bleibt aufrufbar; ein
+                // erneuter Versuch ist idempotent über die external_ref abgesichert.
+            }
+        }
+
         $this->view('payment/success', [
             'title'   => 'Zahlung erhalten',
             'invoice' => $inv,
