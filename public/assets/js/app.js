@@ -50,6 +50,57 @@
         if (custom) { el.focus(); } else { el.value = ''; }
     };
 
+    // PWA-Installation aktiv anbieten (eigener Hinweis statt nur Browser-Default).
+    (function () {
+        var banner = document.getElementById('nova-install');
+        if (!banner) return;
+        var btn = document.getElementById('nova-install-btn');
+        var closeBtn = banner.querySelector('.install-close');
+        var textEl = banner.querySelector('.install-text');
+
+        var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        if (standalone) return;                                   // läuft bereits als App
+        if (sessionStorage.getItem('nova-install-hidden')) return; // in dieser Sitzung ausgeblendet
+
+        var deferred = null;
+        var show = function () { banner.classList.remove('hidden'); };
+
+        // Android/Chrome: Event abfangen und eigenen Button zeigen.
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            deferred = e;
+            show();
+        });
+        if (btn) {
+            btn.addEventListener('click', function () {
+                if (!deferred) return;
+                deferred.prompt();
+                deferred.userChoice.then(function () {
+                    deferred = null;
+                    banner.classList.add('hidden');
+                });
+            });
+        }
+        window.addEventListener('appinstalled', function () { banner.classList.add('hidden'); });
+
+        // iOS/Safari: kein Prompt möglich -> Hinweis anzeigen.
+        var ua = window.navigator.userAgent.toLowerCase();
+        var isIOS = /iphone|ipad|ipod/.test(ua);
+        var isSafari = isIOS && !/crios|fxios/.test(ua);
+        if (isIOS && isSafari) {
+            if (textEl) textEl.textContent = '📲 Installieren: unten auf „Teilen" tippen und „Zum Home-Bildschirm".';
+            if (btn) btn.style.display = 'none';
+            show();
+        }
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                banner.classList.add('hidden');
+                try { sessionStorage.setItem('nova-install-hidden', '1'); } catch (e) {}
+            });
+        }
+    })();
+
     // Hell/Dunkel-Umschaltung; Auswahl in localStorage merken.
     window.novaToggleTheme = function () {
         var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';

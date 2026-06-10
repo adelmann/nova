@@ -114,6 +114,12 @@ $novaHasUpdate = !empty($novaUpdate['has_update']);
         </header>
 
         <div class="content">
+            <div id="nova-install" class="install-banner hidden">
+                <span class="install-text">📲 Nova als App auf dem Startbildschirm installieren?</span>
+                <button type="button" id="nova-install-btn" class="btn btn-sm">Installieren</button>
+                <button type="button" class="install-close" aria-label="Ausblenden">✕</button>
+            </div>
+
             <?php foreach (flash_messages() as $f): ?>
                 <div class="flash flash-<?= e($f['type']) ?>"><?= e($f['message']) ?></div>
             <?php endforeach; ?>
