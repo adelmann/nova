@@ -191,6 +191,7 @@ return static function (Router $r): void {
     $r->post('/rechnungen/{id}/zahlung', [InvoiceController::class, 'addPayment'], cap: 'manage_sales');
     $r->post('/rechnungen/{id}/senden', [InvoiceController::class, 'send'], cap: 'manage_sales');
     $r->get('/rechnungen/{id}/xrechnung', [InvoiceController::class, 'xrechnung'], cap: 'view_accounting');
+    $r->get('/rechnungen/{id}/zugferd', [InvoiceController::class, 'zugferd'], cap: 'view_accounting');
 
     // Einnahmen – ansehen (Buchhaltung), ändern (Vertrieb).
     $r->get('/einnahmen', [IncomeController::class, 'index'], cap: 'view_accounting');

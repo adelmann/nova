@@ -36,6 +36,47 @@ final class PdfService
     }
 
     /**
+     * Rendert die Rechnung als PDF/A-3 und bettet das ZUGFeRD-/Factur-X-XML als
+     * zugehörige Datei ein (hybride E-Rechnung). Gibt die PDF-Bytes zurück.
+     *
+     * @param array<string,mixed> $data
+     */
+    public static function renderZugferd(string $template, array $data, string $xml): string
+    {
+        $html = View::render($template, $data, layout: null);
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('chroot', dirname(__DIR__, 2));
+        $options->setIsPdfAEnabled(true); // PDF/A-3 für ZUGFeRD
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // XML in eine temporäre Datei schreiben (Cpdf liest sie beim Einbetten).
+        $tmp = tempnam(sys_get_temp_dir(), 'fx_') ?: (sys_get_temp_dir() . '/factur-x-' . getmypid() . '.xml');
+        file_put_contents($tmp, $xml);
+
+        try {
+            $cpdf = $dompdf->getCanvas()->get_cpdf();
+            $cpdf->addEmbeddedFile(
+                $tmp,
+                ZugferdService::FILENAME,
+                'Rechnung (Factur-X / ZUGFeRD EN 16931)',
+                'text/xml',
+                [$cpdf->catalogId => 'Alternative']
+            );
+            $cpdf->setAdditionalXmpRdf(ZugferdService::xmpExtension());
+            return (string) $dompdf->output();
+        } finally {
+            @unlink($tmp);
+        }
+    }
+
+    /**
      * Rendert ein PDF und schreibt es auf die Platte.
      *
      * @param array<string,mixed> $data

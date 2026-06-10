@@ -283,6 +283,41 @@ final class InvoiceController extends Controller
         exit;
     }
 
+    public function zugferd(Request $request, array $params): void
+    {
+        $invoice = $this->repo->findWithCustomer((int) $params['id']);
+        if ($invoice === null) {
+            Response::notFound('Rechnung nicht gefunden.');
+            return;
+        }
+        if ((int) $invoice['is_locked'] !== 1) {
+            Session::flash('error', 'ZUGFeRD-/Factur-X-PDFs gibt es nur für finalisierte Rechnungen.');
+            $this->redirect('/rechnungen/' . $invoice['id']);
+        }
+
+        $settings = (new CompanySettingsRepository())->get();
+        $items    = $this->repo->items((int) $invoice['id']);
+        $xml      = \Nova\Services\ZugferdService::cii($invoice, $items, $settings);
+
+        try {
+            $pdf = PdfService::renderZugferd('pdf/invoice', [
+                'invoice'  => $invoice,
+                'items'    => $items,
+                'settings' => $settings,
+            ], $xml);
+        } catch (\Throwable $e) {
+            Session::flash('error', 'ZUGFeRD-PDF konnte nicht erzeugt werden: ' . $e->getMessage());
+            $this->redirect('/rechnungen/' . $invoice['id']);
+        }
+
+        $name = 'ZUGFeRD-Rechnung-' . str_replace(['/', ' '], '-', (string) $invoice['number']) . '.pdf';
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $name . '"');
+        header('Content-Length: ' . (string) strlen($pdf));
+        echo $pdf;
+        exit;
+    }
+
     public function addPayment(Request $request, array $params): void
     {
         $this->verifyCsrf($request);
