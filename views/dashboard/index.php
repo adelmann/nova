@@ -9,6 +9,10 @@
 /** @var int $missingReceipts */
 /** @var int $customerCount */
 /** @var array{receivables_open:int,inflow_30:int,payables_open:int,recurring_30:int,outflow_30:int,net_30:int} $liquidity */
+/** @var array<int,array{method:string,sum:int,count:int,percent:int}> $paymentMethods */
+/** @var array<int,array<string,mixed>> $topCustomers */
+/** @var array<string,int> $topExpenseCats */
+/** @var int|null $avgPayDays */
 /** @var bool $kuActive */
 /** @var int $kuLimit */
 /** @var int $kuPercent */
@@ -69,6 +73,58 @@ $needs2fa = $me !== null && (int) ($me['totp_enabled'] ?? 0) !== 1;
         </div>
     </div>
     <p class="help">Schätzung auf Basis der Fälligkeiten offener Rechnungen sowie offener und wiederkehrender Ausgaben. Kein Kontostand – Nova kennt keinen Banksaldo.</p>
+</div>
+
+<div class="dash-cols" style="display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
+    <div class="panel">
+        <h2>Zahlungsmethoden <?= $year ?></h2>
+        <?php if ($paymentMethods === []): ?>
+            <p class="muted">Noch keine Zahlungseingänge in diesem Jahr.</p>
+        <?php else: ?>
+            <?php foreach ($paymentMethods as $pm): ?>
+                <div style="margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;font-size:.92rem;">
+                        <span><?= e($pm['method']) ?> <span class="muted">(<?= $pm['count'] ?>×)</span></span>
+                        <span><?= money($pm['sum']) ?> · <?= $pm['percent'] ?> %</span>
+                    </div>
+                    <div class="progress" style="margin-top:4px;"><div class="progress-bar" style="width:<?= $pm['percent'] ?>%"></div></div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+        <?php if ($avgPayDays !== null): ?>
+            <p class="help" style="margin-bottom:0;">⏱ Durchschnittliche Zahldauer: <strong><?= $avgPayDays ?> Tage</strong> ab Rechnungsdatum.</p>
+        <?php endif; ?>
+    </div>
+
+    <div class="panel">
+        <h2>Top-Kunden <?= $year ?></h2>
+        <?php if ($topCustomers === []): ?>
+            <p class="muted">Noch keine Zahlungseingänge in diesem Jahr.</p>
+        <?php else: ?>
+            <table style="width:100%;">
+                <tbody>
+                <?php foreach ($topCustomers as $tc): ?>
+                    <tr><td><?= e($tc['name'] ?: '–') ?></td><td class="num" style="text-align:right;"><?= money((int) $tc['s']) ?></td></tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+
+    <div class="panel">
+        <h2>Ausgaben nach Kategorie <?= $year ?></h2>
+        <?php if ($topExpenseCats === []): ?>
+            <p class="muted">Noch keine Ausgaben in diesem Jahr.</p>
+        <?php else: ?>
+            <table style="width:100%;">
+                <tbody>
+                <?php foreach ($topExpenseCats as $cat => $sum): ?>
+                    <tr><td><?= e($cat) ?></td><td class="num" style="text-align:right;"><?= money((int) $sum) ?></td></tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
 </div>
 
 <?php if ($kuActive): ?>

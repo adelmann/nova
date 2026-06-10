@@ -84,9 +84,51 @@ final class DashboardController extends Controller
         $kuActive = (int) $settings['is_kleinunternehmer'] === 1;
         $kuPercent = self::KU_LIMIT_CENTS > 0 ? min(100, (int) round($summary['income'] / self::KU_LIMIT_CENTS * 100)) : 0;
 
+        // --- Zahlungsmethoden (Anteil, laufendes Jahr) ---
+        $pmRows = $db->fetchAll(
+            "SELECT COALESCE(NULLIF(method,''),'Unbekannt') AS method, SUM(amount_cents) AS s, COUNT(*) AS n
+             FROM payment WHERE strftime('%Y', paid_on) = :y AND amount_cents > 0
+             GROUP BY method ORDER BY s DESC",
+            ['y' => (string) $year]
+        );
+        $pmTotal = array_sum(array_map(static fn ($r) => (int) $r['s'], $pmRows));
+        $paymentMethods = array_map(static fn ($r) => [
+            'method'  => (string) $r['method'],
+            'sum'     => (int) $r['s'],
+            'count'   => (int) $r['n'],
+            'percent' => $pmTotal > 0 ? (int) round((int) $r['s'] / $pmTotal * 100) : 0,
+        ], $pmRows);
+
+        // --- Top-Kunden nach Zahlungseingang (laufendes Jahr) ---
+        $topCustomers = $db->fetchAll(
+            "SELECT COALESCE(NULLIF(c.company_name,''), c.contact_name) AS name, SUM(p.amount_cents) AS s
+             FROM payment p JOIN invoice i ON i.id = p.invoice_id JOIN customer c ON c.id = i.customer_id
+             WHERE strftime('%Y', p.paid_on) = :y AND p.amount_cents > 0
+             GROUP BY c.id ORDER BY s DESC LIMIT 5",
+            ['y' => (string) $year]
+        );
+
+        // --- Ausgaben nach Kategorie (Top 5, laufendes Jahr) ---
+        $expenseCats = EuerService::byCategory($year)['expense'];
+        arsort($expenseCats);
+        $topExpenseCats = array_slice($expenseCats, 0, 5, true);
+
+        // --- Durchschnittliche Zahldauer (Tage von Rechnungsdatum bis Zahlung) ---
+        $avgPayDays = $db->fetchColumn(
+            "SELECT AVG(julianday(p.paid_on) - julianday(i.invoice_date))
+             FROM payment p JOIN invoice i ON i.id = p.invoice_id
+             WHERE strftime('%Y', p.paid_on) = :y AND p.method != 'Skonto' AND p.amount_cents > 0",
+            ['y' => (string) $year]
+        );
+        $avgPayDays = $avgPayDays !== null ? (int) round((float) $avgPayDays) : null;
+
         $this->view('dashboard/index', [
             'title'           => 'Dashboard',
             'year'            => $year,
+            'paymentMethods'  => $paymentMethods,
+            'topCustomers'    => $topCustomers,
+            'topExpenseCats'  => $topExpenseCats,
+            'avgPayDays'      => $avgPayDays,
             'summary'         => $summary,
             'months'          => EuerService::byMonth($year),
             'openInvoices'    => $openInvoices,
