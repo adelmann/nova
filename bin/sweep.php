@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 use Nova\Core\DB;
 use Nova\Models\InvoiceRepository;
+use Nova\Services\RecurringExpenseService;
 use Nova\Services\RecurringService;
 use Nova\Services\ReminderService;
 use Nova\Services\UpdateService;
@@ -27,6 +28,11 @@ echo "» Sweep: {$count} Rechnung(en) auf 'überfällig' gesetzt.\n";
 // Wiederkehrende Rechnungen erzeugen.
 foreach (RecurringService::runDue($config) as $line) {
     echo '» Wiederkehrend: ' . $line . "\n";
+}
+
+// Wiederkehrende Ausgaben (Daueraufwendungen) buchen.
+foreach (RecurringExpenseService::runDue() as $line) {
+    echo '» Dauerausgabe: ' . $line . "\n";
 }
 
 // Automatische Zahlungserinnerungen (falls aktiviert).

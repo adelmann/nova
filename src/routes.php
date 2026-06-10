@@ -23,6 +23,7 @@ use Nova\Controllers\ProjectController;
 use Nova\Controllers\QuoteController;
 use Nova\Controllers\ReceiptController;
 use Nova\Controllers\RecurringController;
+use Nova\Controllers\RecurringExpenseController;
 use Nova\Controllers\ReminderController;
 use Nova\Controllers\ReportController;
 use Nova\Controllers\SettingsController;
@@ -206,6 +207,14 @@ return static function (Router $r): void {
     $r->get('/ausgaben/{id}/bearbeiten', [ExpenseController::class, 'edit'], cap: 'manage_expenses');
     $r->post('/ausgaben/{id}', [ExpenseController::class, 'update'], cap: 'manage_expenses');
     $r->post('/ausgaben/{id}/loeschen', [ExpenseController::class, 'destroy'], cap: 'manage_expenses');
+
+    // Wiederkehrende Ausgaben / Daueraufwendungen (Ausgaben).
+    $r->get('/dauerausgaben', [RecurringExpenseController::class, 'index'], cap: 'manage_expenses');
+    $r->get('/dauerausgaben/neu', [RecurringExpenseController::class, 'create'], cap: 'manage_expenses');
+    $r->post('/dauerausgaben', [RecurringExpenseController::class, 'store'], cap: 'manage_expenses');
+    $r->get('/dauerausgaben/{id}/bearbeiten', [RecurringExpenseController::class, 'edit'], cap: 'manage_expenses');
+    $r->post('/dauerausgaben/{id}', [RecurringExpenseController::class, 'update'], cap: 'manage_expenses');
+    $r->post('/dauerausgaben/{id}/loeschen', [RecurringExpenseController::class, 'destroy'], cap: 'manage_expenses');
 
     // Belege – ansehen/herunterladen (Buchhaltung), ändern (Ausgaben).
     $r->get('/belege', [ReceiptController::class, 'index'], cap: 'view_accounting');

@@ -20,6 +20,7 @@ $navGroups = [
     'Finanzen' => [
         ['/einnahmen',    'Einnahmen',    '↥', 'view_accounting'],
         ['/ausgaben',     'Ausgaben',     '↧', 'view_accounting'],
+        ['/dauerausgaben','Dauerausgaben','↺', 'manage_expenses'],
         ['/lieferanten',  'Lieferanten',  '☷', 'manage_expenses'],
         ['/belege',       'Belege',       '▤', 'view_accounting'],
         ['/bankimport',   'Bankimport',   '↻', 'manage_expenses'],
