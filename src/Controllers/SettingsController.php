@@ -147,7 +147,8 @@ final class SettingsController extends Controller
         try {
             $log = \Nova\Services\BackupService::runFromSettings(
                 (new CompanySettingsRepository())->get(),
-                $GLOBALS['nova_config']
+                $GLOBALS['nova_config'],
+                true // manueller Lauf: immer anlegen + versenden
             );
             AuditService::record('backup', 'company_settings', 1, null, ['via' => 'manuell']);
             Session::flash('success', 'Backup erstellt. ' . implode(' · ', $log));
@@ -191,6 +192,8 @@ final class SettingsController extends Controller
         $data = [
             'backup_email' => $request->str('backup_email'),
             'backup_dir'   => $request->str('backup_dir'),
+            'backup_interval_hours'       => max(0, $request->int('backup_interval_hours', 24)),
+            'backup_email_interval_hours' => max(0, $request->int('backup_email_interval_hours', 24)),
         ];
         $backupPass = $request->str('backup_password');
         if ($backupPass !== '') {

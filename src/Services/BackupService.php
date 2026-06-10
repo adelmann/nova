@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nova\Services;
 
 use Nova\Core\DB;
+use Nova\Models\CompanySettingsRepository;
 
 /**
  * Erstellt Datensicherungen (SQLite-DB-Snapshot + hochgeladene Dateien) als
@@ -99,7 +100,43 @@ final class BackupService
      * @param array<string,mixed> $config
      * @return array<int,string> Protokollzeilen
      */
-    public static function runFromSettings(array $settings, array $config): array
+    /**
+     * Zeitpunkt (Unix) des neuesten vorhandenen Backups, oder null.
+     */
+    public static function newestBackupTime(string $backupDir): ?int
+    {
+        $files = $backupDir !== '' ? (glob($backupDir . '/nova-*.zip') ?: []) : [];
+        $newest = null;
+        foreach ($files as $f) {
+            $m = (int) @filemtime($f);
+            if ($newest === null || $m > $newest) {
+                $newest = $m;
+            }
+        }
+        return $newest;
+    }
+
+    /**
+     * Ist ein neues Backup fällig? backup_interval_hours = 0 → immer.
+     *
+     * @param array<string,mixed> $settings @param array<string,mixed> $config
+     */
+    public static function isBackupDue(array $settings, array $config): bool
+    {
+        $interval = (int) ($settings['backup_interval_hours'] ?? 24);
+        if ($interval <= 0) {
+            return true;
+        }
+        $newest = self::newestBackupTime((string) ($config['paths']['backups'] ?? ''));
+        return $newest === null || $newest <= time() - $interval * 3600;
+    }
+
+    /**
+     * @param array<string,mixed> $settings
+     * @param array<string,mixed> $config
+     * @param bool $force true = manueller Lauf, ignoriert E-Mail-Drosselung
+     */
+    public static function runFromSettings(array $settings, array $config, bool $force = false): array
     {
         $log      = [];
         $password = (string) ($settings['backup_password'] ?? '');
@@ -125,9 +162,18 @@ final class BackupService
             }
         }
 
-        // Per E-Mail versenden (optional).
+        // Per E-Mail versenden (optional, gedrosselt über backup_email_interval_hours).
         $email = trim((string) ($settings['backup_email'] ?? ''));
-        if ($email !== '') {
+        $emailInterval = (int) ($settings['backup_email_interval_hours'] ?? 24);
+        $emailDue = $force
+            || ($emailInterval > 0 && (
+                empty($settings['last_backup_email_at'])
+                || strtotime((string) $settings['last_backup_email_at']) <= time() - $emailInterval * 3600
+            ));
+        if ($email !== '' && !$emailDue) {
+            $log[] = 'E-Mail-Versand übersprungen (Intervall noch nicht erreicht).';
+        }
+        if ($email !== '' && $emailDue) {
             try {
                 Mailer::send(
                     $settings,
@@ -138,6 +184,7 @@ final class BackupService
                     [['name' => basename($zipPath), 'data' => (string) file_get_contents($zipPath), 'mime' => 'application/zip']]
                 );
                 $log[] = "Per E-Mail versendet an: {$email}";
+                (new CompanySettingsRepository())->update(['last_backup_email_at' => date('Y-m-d H:i:s')]);
             } catch (\RuntimeException $e) {
                 $log[] = 'FEHLER beim E-Mail-Versand: ' . $e->getMessage();
             }

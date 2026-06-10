@@ -16,6 +16,9 @@ if ($appUrl === '') {
 $cronUrl  = !empty($s['backup_token'])
     ? $cronBase . '/cron/backup?token=' . $s['backup_token']
     : '(wird nach dem Speichern erzeugt)';
+$sweepUrl = !empty($s['backup_token'])
+    ? $cronBase . '/cron/sweep?token=' . $s['backup_token']
+    : '(wird nach dem Speichern erzeugt)';
 $defaultBackupDir = (string) ($GLOBALS['nova_config']['paths']['backups'] ?? '');
 ?>
 <?= partial('settings/_nav', ['active' => 'backup']) ?>
@@ -35,6 +38,16 @@ $defaultBackupDir = (string) ($GLOBALS['nova_config']['paths']['backups'] ?? '')
                 <label for="backup_email">Backup per E-Mail an (optional)</label>
                 <input type="email" id="backup_email" name="backup_email" value="<?= e($s['backup_email'] ?? '') ?>" placeholder="z.B. backup@meine-domain.de">
             </div>
+            <div class="field">
+                <label for="backup_interval_hours">Backup anlegen höchstens alle … Stunden</label>
+                <input type="number" id="backup_interval_hours" name="backup_interval_hours" min="0" max="8760" value="<?= e((string) ($s['backup_interval_hours'] ?? 24)) ?>">
+                <span class="help">Drosselt den Web-Cron: ein neues Backup wird nur angelegt, wenn das letzte älter ist. <code>0</code> = bei jedem Aufruf. Beispiel: stündlicher Cron + <code>24</code> = ein Backup pro Tag.</span>
+            </div>
+            <div class="field">
+                <label for="backup_email_interval_hours">E-Mail-Versand höchstens alle … Stunden</label>
+                <input type="number" id="backup_email_interval_hours" name="backup_email_interval_hours" min="0" max="8760" value="<?= e((string) ($s['backup_email_interval_hours'] ?? 24)) ?>">
+                <span class="help"><code>0</code> = nie automatisch per E-Mail. So lässt sich z.&nbsp;B. täglich sichern, aber nur wöchentlich (<code>168</code>) mailen.</span>
+            </div>
             <div class="field full">
                 <label for="backup_dir">Zusätzliches Zielverzeichnis auf dem Server (optional)</label>
                 <input type="text" id="backup_dir" name="backup_dir" value="<?= e($s['backup_dir'] ?? '') ?>" placeholder="<?= e($defaultBackupDir) ?>">
@@ -43,16 +56,33 @@ $defaultBackupDir = (string) ($GLOBALS['nova_config']['paths']['backups'] ?? '')
         </div>
 
         <div class="flash flash-warn" style="margin-top:6px;">
-            <strong>Cron-Aufruf (Web):</strong> Diese URL z.B. täglich vom Cron des Hosters per <code>wget&nbsp;-qO-</code> aufrufen lassen:
+            <strong>1) Backup-Cron (Web):</strong> Diese URL regelmäßig vom Cron des Hosters per <code>wget&nbsp;-qO-</code> aufrufen lassen. Wie oft tatsächlich ein Backup entsteht, steuert das Intervall oben.
             <div class="field" style="margin-top:8px;">
                 <input type="text" readonly onclick="this.select()" value="<?= e($cronUrl) ?>">
             </div>
-            <span class="help">Alternativ ohne Web: <code>php bin/backup.php</code> als CLI-Cron. Es werden automatisch die letzten 14 Backups aufbewahrt.</span>
+            <span class="help">Mit <code>&amp;force=1</code> wird das Intervall ignoriert (sofortiges Backup). Es werden automatisch die letzten 14 Backups aufbewahrt.</span>
             <?php if (!empty($s['backup_token'])): ?>
                 <label class="checkbox" style="margin-top:8px;">
-                    <input type="checkbox" name="regenerate_backup_token" value="1"> Token neu generieren (alter Link wird ungültig)
+                    <input type="checkbox" name="regenerate_backup_token" value="1"> Token neu generieren (beide Links werden ungültig)
                 </label>
             <?php endif; ?>
+        </div>
+
+        <div class="flash flash-warn" style="margin-top:10px;">
+            <strong>2) Wartungs-Cron (Web):</strong> erledigt wiederkehrende Rechnungen &amp; <strong>Dauerausgaben</strong>, jährliche <strong>AfA</strong>, überfällige Rechnungen und automatische Mahnungen. Ohne diesen Aufruf passiert das nicht automatisch! Diese URL z.&nbsp;B. <strong>1–2×&nbsp;täglich</strong> aufrufen lassen:
+            <div class="field" style="margin-top:8px;">
+                <input type="text" readonly onclick="this.select()" value="<?= e($sweepUrl) ?>">
+            </div>
+            <span class="help">Alle Aufgaben sind idempotent – häufigeres Aufrufen schadet nicht (es wird nichts doppelt gebucht).</span>
+        </div>
+
+        <div class="flash" style="margin-top:10px; background:var(--bg-soft);">
+            <strong>Ohne Web-Cron (CLI):</strong> Falls dein Hoster echte Cronjobs erlaubt, stattdessen direkt:
+            <pre style="margin:8px 0 0; white-space:pre-wrap;"># täglich 03:00 – Backup
+0 3 * * *  cd <?= e((string) ($GLOBALS['nova_config']['paths']['root'] ?? '/pfad/zu/nova')) ?> &amp;&amp; php bin/backup.php
+
+# täglich 02:30 – Wartung (wiederkehrend, AfA, Mahnungen, überfällig)
+30 2 * * *  cd <?= e((string) ($GLOBALS['nova_config']['paths']['root'] ?? '/pfad/zu/nova')) ?> &amp;&amp; php bin/sweep.php</pre>
         </div>
     </div>
 

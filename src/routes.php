@@ -61,6 +61,8 @@ return static function (Router $r): void {
     // Token-geschützter Cron-Endpoint (öffentlich, per Token abgesichert).
     $r->get('/cron/backup', [CronController::class, 'backup'], auth: false);
     $r->post('/cron/backup', [CronController::class, 'backup'], auth: false);
+    $r->get('/cron/sweep', [CronController::class, 'sweep'], auth: false);
+    $r->post('/cron/sweep', [CronController::class, 'sweep'], auth: false);
 
     // Web-Setup (Erstinstallation, öffentlich – greift nur ohne Benutzer).
     $r->get('/setup', [SetupController::class, 'index'], auth: false);
