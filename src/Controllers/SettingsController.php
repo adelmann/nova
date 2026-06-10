@@ -127,7 +127,53 @@ final class SettingsController extends Controller
     // ---- Datensicherung ----------------------------------------------------
     public function backupSettings(Request $request): void
     {
-        $this->section('settings/backup', 'Einstellungen · Datensicherung');
+        $this->view('settings/backup', [
+            'title'    => 'Einstellungen · Datensicherung',
+            'settings' => (new CompanySettingsRepository())->get(),
+            'backups'  => \Nova\Services\BackupService::listBackups($GLOBALS['nova_config']),
+        ]);
+    }
+
+    /** Erstellt sofort ein Backup (und verteilt es gemäß Einstellungen). */
+    public function runBackup(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        try {
+            $log = \Nova\Services\BackupService::runFromSettings(
+                (new CompanySettingsRepository())->get(),
+                $GLOBALS['nova_config']
+            );
+            AuditService::record('backup', 'company_settings', 1, null, ['via' => 'manuell']);
+            Session::flash('success', 'Backup erstellt. ' . implode(' · ', $log));
+        } catch (\Throwable $e) {
+            Session::flash('error', 'Backup fehlgeschlagen: ' . $e->getMessage());
+        }
+        $this->redirect('/einstellungen/datensicherung');
+    }
+
+    /** Lädt ein vorhandenes Backup-Archiv herunter. */
+    public function downloadBackup(Request $request): void
+    {
+        $path = \Nova\Services\BackupService::pathForName($GLOBALS['nova_config'], $request->str('file'));
+        if ($path === null) {
+            \Nova\Core\Response::notFound('Backup nicht gefunden.');
+            return;
+        }
+        \Nova\Core\Response::download($path, basename($path), 'application/zip');
+    }
+
+    /** Löscht ein vorhandenes Backup-Archiv. */
+    public function deleteBackup(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        $path = \Nova\Services\BackupService::pathForName($GLOBALS['nova_config'], $request->str('file'));
+        if ($path !== null) {
+            @unlink($path);
+            Session::flash('success', 'Backup gelöscht.');
+        } else {
+            Session::flash('error', 'Backup nicht gefunden.');
+        }
+        $this->redirect('/einstellungen/datensicherung');
     }
 
     public function saveBackup(Request $request): void

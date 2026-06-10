@@ -72,6 +72,9 @@ return static function (Router $r): void {
     $r->post('/einstellungen/email', [SettingsController::class, 'saveEmail'], cap: 'manage_settings');
     $r->get('/einstellungen/datensicherung', [SettingsController::class, 'backupSettings'], cap: 'manage_settings');
     $r->post('/einstellungen/datensicherung', [SettingsController::class, 'saveBackup'], cap: 'manage_settings');
+    $r->post('/einstellungen/datensicherung/jetzt', [SettingsController::class, 'runBackup'], cap: 'manage_settings');
+    $r->get('/einstellungen/datensicherung/download', [SettingsController::class, 'downloadBackup'], cap: 'manage_settings');
+    $r->post('/einstellungen/datensicherung/loeschen', [SettingsController::class, 'deleteBackup'], cap: 'manage_settings');
     $r->get('/einstellungen/system', [SettingsController::class, 'system'], cap: 'manage_settings');
     $r->post('/einstellungen/update-pruefen', [UpdateController::class, 'checkNow'], cap: 'manage_settings');
     $r->post('/einstellungen/update-installieren', [UpdateController::class, 'install'], cap: 'manage_settings');

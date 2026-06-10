@@ -164,6 +164,40 @@ final class BackupService
         return $log;
     }
 
+    /**
+     * Listet vorhandene Backup-Archive (neueste zuerst).
+     *
+     * @param array<string,mixed> $config
+     * @return array<int,array{name:string,size:int,created:int}>
+     */
+    public static function listBackups(array $config): array
+    {
+        $dir   = (string) ($config['paths']['backups'] ?? '');
+        $files = $dir !== '' ? (glob($dir . '/nova-*.zip') ?: []) : [];
+        rsort($files);
+        $out = [];
+        foreach ($files as $f) {
+            $out[] = ['name' => basename($f), 'size' => (int) (filesize($f) ?: 0), 'created' => (int) (filemtime($f) ?: 0)];
+        }
+        return $out;
+    }
+
+    /**
+     * Validiert einen Backup-Dateinamen und gibt den absoluten Pfad zurück
+     * (oder null). Schützt vor Path-Traversal.
+     *
+     * @param array<string,mixed> $config
+     */
+    public static function pathForName(array $config, string $name): ?string
+    {
+        if (preg_match('/^nova-[0-9_\-]+\.zip$/', $name) !== 1) {
+            return null;
+        }
+        $dir  = (string) ($config['paths']['backups'] ?? '');
+        $path = $dir . '/' . $name;
+        return is_file($path) ? $path : null;
+    }
+
     public static function encryptionSupported(): bool
     {
         return method_exists(\ZipArchive::class, 'setEncryptionName')

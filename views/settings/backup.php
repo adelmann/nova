@@ -1,6 +1,9 @@
 <?php
 /** @var array<string,mixed> $settings */
+/** @var array<int,array{name:string,size:int,created:int}> $backups */
 $s = $settings;
+$backups = $backups ?? [];
+$fmtSize = static fn (int $b): string => $b >= 1048576 ? round($b / 1048576, 1) . ' MB' : max(1, (int) round($b / 1024)) . ' KB';
 $appUrl = rtrim((string) ($GLOBALS['nova_config']['app_url'] ?? ''), '/');
 if ($appUrl === '') {
     // Aktuelle Domain aus dem Request ableiten.
@@ -57,3 +60,41 @@ $defaultBackupDir = (string) ($GLOBALS['nova_config']['paths']['backups'] ?? '')
         <button type="submit" class="btn">Speichern</button>
     </div>
 </form>
+
+<div class="panel">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <h2 style="margin:0;">Vorhandene Backups</h2>
+        <form method="post" action="/einstellungen/datensicherung/jetzt">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn">Backup jetzt erstellen</button>
+        </form>
+    </div>
+
+    <?php if ($backups === []): ?>
+        <p class="muted" style="margin-bottom:0">Noch keine Backups vorhanden. Erstelle eines manuell oder per Cron.</p>
+    <?php else: ?>
+        <div class="table-wrap" style="box-shadow:none;border:1px solid var(--border); margin-top:12px;">
+            <table>
+                <thead><tr><th>Datei</th><th>Erstellt</th><th class="num">Größe</th><th></th></tr></thead>
+                <tbody>
+                <?php foreach ($backups as $b): ?>
+                    <tr>
+                        <td><?= e($b['name']) ?></td>
+                        <td><?= e(date('d.m.Y H:i', $b['created'])) ?></td>
+                        <td class="num"><?= e($fmtSize($b['size'])) ?></td>
+                        <td style="text-align:right; white-space:nowrap;">
+                            <a class="btn btn-secondary btn-sm" href="/einstellungen/datensicherung/download?file=<?= urlencode($b['name']) ?>">Herunterladen</a>
+                            <form method="post" action="/einstellungen/datensicherung/loeschen" data-confirm="Dieses Backup löschen?" style="display:inline">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="file" value="<?= e($b['name']) ?>">
+                                <button type="submit" class="btn btn-secondary btn-sm">✕</button>
+                            </form>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <p class="help" style="margin-bottom:0">Es werden automatisch die letzten 14 Backups aufbewahrt.<?php if (!empty($s['backup_password'])): ?> Die ZIPs sind passwortgeschützt.<?php endif; ?></p>
+    <?php endif; ?>
+</div>
