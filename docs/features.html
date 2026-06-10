@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Features – Nova</title>
+<meta name="description" content="Alle Funktionen von Nova im Detail: Stammdaten, Verkauf, Ausgaben & Belege, Buchhaltung & EÜR, Online-Zahlung, E-Rechnung, Benutzer & Rollen, Backups und Updates.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site">
+    <div class="wrap">
+        <a class="brand" href="index.html"><span class="logo">N</span> Nova</a>
+        <button class="nav-toggle" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+        <nav class="main" id="nav">
+            <a href="index.html">Start</a>
+            <a href="features.html">Features</a>
+            <a href="anleitung.html">Anleitung</a>
+            <a class="cta" href="https://github.com/adelmann/nova" rel="noopener">Auf GitHub</a>
+        </nav>
+    </div>
+</header>
+
+<div class="wrap doc">
+    <h1>Funktionsumfang</h1>
+    <p class="lead">Nova bildet den kaufmännischen Alltag eines kleinen Betriebs vollständig ab – von der Kundenakte bis zur Einnahmen-Überschuss-Rechnung.</p>
+
+    <div class="toc">
+        <strong>Auf dieser Seite</strong>
+        <ul>
+            <li><a href="#stammdaten">Stammdaten</a></li>
+            <li><a href="#verkauf">Verkauf</a></li>
+            <li><a href="#zahlung">Online-Zahlung</a></li>
+            <li><a href="#ausgaben">Ausgaben &amp; Belege</a></li>
+            <li><a href="#buchhaltung">Buchhaltung &amp; EÜR</a></li>
+            <li><a href="#erechnung">E-Rechnung &amp; PDF</a></li>
+            <li><a href="#benutzer">Benutzer, Rollen &amp; 2FA</a></li>
+            <li><a href="#backup">Backups &amp; Updates</a></li>
+            <li><a href="#technik">Technik &amp; PWA</a></li>
+        </ul>
+    </div>
+
+    <h2 id="stammdaten">Stammdaten</h2>
+    <ul>
+        <li><strong>Kunden</strong> mit vollständiger Adresse, USt-IdNr. und Notizen.</li>
+        <li><strong>Projekte</strong> mit abrechenbaren Leistungen, die sich direkt in Angebote/Rechnungen übernehmen lassen.</li>
+        <li><strong>Lieferanten &amp; Dienstleister</strong> für die Ausgabenseite.</li>
+        <li><strong>Leistungskatalog</strong> mit wiederverwendbaren Positionen (Beschreibung, Preis, Einheit).</li>
+        <li>Datensätze werden <strong>archiviert statt gelöscht</strong> – Verlauf und Bezüge bleiben erhalten.</li>
+    </ul>
+
+    <h2 id="verkauf">Verkauf</h2>
+    <ul>
+        <li><strong>Angebote</strong> erstellen und per Klick in eine <strong>Rechnung umwandeln</strong>.</li>
+        <li><strong>Rechnungen</strong> mit lückenlosen, fortlaufenden Nummern.</li>
+        <li><strong>Finalisierung &amp; Sperre (GoBD):</strong> Eine festgeschriebene Rechnung ist unveränderbar; Korrekturen erfolgen über <strong>Storno</strong>.</li>
+        <li><strong>Zahlungserfassung</strong> (Teil- und Vollzahlungen) mit automatischem Status.</li>
+        <li><strong>Mehrstufiges Mahnwesen</strong> als PDF und E-Mail, mit optionalen automatischen Zahlungserinnerungen.</li>
+        <li><strong>Wiederkehrende Rechnungen</strong> (z. B. monatliche Pauschalen) – automatisch als Entwurf erzeugt.</li>
+        <li><strong>Kleinunternehmer-Regelung (§ 19 UStG)</strong> wird unterstützt; der Hinweis erscheint automatisch.</li>
+    </ul>
+
+    <h2 id="zahlung">Online-Zahlung</h2>
+    <ul>
+        <li>Optionaler <strong>Bezahllink</strong> in der Rechnungs-E-Mail – erscheint nur, wenn ein Anbieter konfiguriert ist.</li>
+        <li>Unterstützt <strong>Stripe</strong> (Kreditkarte, Apple/Google Pay) und <strong>PayPal</strong>, auch parallel.</li>
+        <li>Der <strong>Bruttobetrag wird als Einnahme</strong> verbucht, die <strong>Anbietergebühr automatisch als Betriebsausgabe</strong> (EÜR) – die Gebühr bleibt so steuerlich absetzbar.</li>
+        <li>Zahlungen werden <strong>idempotent</strong> verbucht; doppelte Benachrichtigungen führen nicht zu Doppelbuchungen.</li>
+        <li>Anbieter-Auszahlungen aufs Bankkonto werden beim Import als <strong>Geldtransit</strong> erkannt (keine Doppelzählung).</li>
+    </ul>
+
+    <h2 id="ausgaben">Ausgaben &amp; Belege</h2>
+    <ul>
+        <li><strong>Ausgaben</strong> mit passender <strong>EÜR-Kategorie</strong>, Zahlart und Status.</li>
+        <li><strong>Belege</strong> als Foto <em>oder</em> PDF hochladen, frei zuordnen oder direkt als Ausgabe verbuchen.</li>
+        <li><strong>CSV-Bankimport</strong>: Umsätze einlesen, Ausgaben übernehmen und Zahlungseingänge automatisch offenen Rechnungen zuordnen.</li>
+    </ul>
+
+    <h2 id="buchhaltung">Buchhaltung &amp; EÜR</h2>
+    <ul>
+        <li><strong>Automatisches, unveränderbares Buchungsjournal</strong> (Datenbank-Trigger verhindern nachträgliche Änderung/Löschung).</li>
+        <li><strong>EÜR-Auswertung</strong> nach Monat und Kategorie inklusive Einzelaufstellung.</li>
+        <li><strong>Exporte:</strong> CSV und PDF, <strong>DATEV-Buchungsstapel</strong> sowie ein <strong>Jahres-ZIP</strong> mit allen Belegen.</li>
+        <li>Separate Ansichten für <strong>Einnahmen</strong> und <strong>Auswertungen</strong>.</li>
+    </ul>
+
+    <h2 id="erechnung">E-Rechnung &amp; PDF</h2>
+    <ul>
+        <li><strong>XRechnung-3.0-XML-Export</strong> für elektronische Rechnungen.</li>
+        <li><strong>PDF-Erzeugung</strong> für Angebote, Rechnungen, Mahnungen und EÜR – mit Logo und Briefkopf.</li>
+        <li><strong>E-Mail-Versand</strong> über SMTP oder <code>mail()</code>, inklusive Signatur und Textvorlagen mit Platzhaltern.</li>
+    </ul>
+
+    <h2 id="benutzer">Benutzer, Rollen &amp; 2FA</h2>
+    <ul>
+        <li><strong>Inhaber (Admin):</strong> Vollzugriff inkl. Einstellungen und Benutzerverwaltung.</li>
+        <li><strong>Mitarbeiter:</strong> operatives Arbeiten ohne Einstellungen/Benutzer.</li>
+        <li><strong>Steuerberater:</strong> ausschließlich lesender Zugriff auf Finanzansichten und Exporte.</li>
+        <li>Neue Konten erhalten einen <strong>Einladungslink</strong> und setzen ihr Passwort selbst; Benutzer werden deaktiviert statt gelöscht.</li>
+        <li><strong>Zwei-Faktor-Authentifizierung (TOTP)</strong> pro Benutzer, kompatibel mit gängigen Authenticator-Apps, inkl. Recovery-Codes.</li>
+    </ul>
+
+    <h2 id="backup">Backups &amp; Updates</h2>
+    <ul>
+        <li><strong>Verschlüsselte Backups</strong> (AES-256-ZIP, sofern der Server es unterstützt) aus Datenbank und Uploads.</li>
+        <li>Auf Knopfdruck, zusätzlich per E-Mail und/oder ins Serververzeichnis; automatisch per <strong>Cron</strong> (CLI oder token-geschützte Web-URL).</li>
+        <li>Die letzten 14 Backups werden aufbewahrt und lassen sich im Tool herunterladen/löschen.</li>
+        <li><strong>Self-Update über GitHub:</strong> neue Version per Klick – erst Backup, dann Download/Entpacken, dann Migrationen. Datenbank, <code>config.php</code> und <code>storage/</code> bleiben unangetastet.</li>
+    </ul>
+
+    <h2 id="technik">Technik &amp; PWA</h2>
+    <ul>
+        <li><strong>Reines PHP (8.1+) und SQLite</strong> – kein Node, kein Build-Schritt, kein Composer auf dem Server nötig.</li>
+        <li>Läuft auf <strong>einfachem Shared Hosting</strong> mit <code>mod_rewrite</code>; Docroot zeigt auf <code>public/</code>.</li>
+        <li>Als <strong>Progressive Web App</strong> auf dem Handy installierbar – es werden nur statische Assets gecacht, niemals Daten oder PDFs.</li>
+        <li><strong>Optionaler KI-Assistent</strong> über die Anthropic-API.</li>
+    </ul>
+
+    <div class="callout warn">
+        <strong>Hinweis:</strong> Nova ersetzt keine Steuerberatung. Die Nutzung erfolgt auf eigenes Risiko und ohne Gewährleistung.
+    </div>
+
+    <div class="btn-row" style="margin-top:34px">
+        <a class="btn primary" href="anleitung.html">Zur Installations-Anleitung</a>
+        <a class="btn" href="https://github.com/adelmann/nova" rel="noopener">Quellcode auf GitHub</a>
+    </div>
+</div>
+
+<footer class="site">
+    <div class="wrap">
+        <div class="copy">© 2026 Adelmann Solutions · Nova · MIT-Lizenz · ohne Gewährleistung</div>
+        <nav>
+            <a href="index.html">Start</a>
+            <a href="anleitung.html">Anleitung</a>
+            <a href="https://github.com/adelmann/nova" rel="noopener">GitHub</a>
+            <a href="impressum.html">Impressum</a>
+            <a href="datenschutz.html">Datenschutz</a>
+        </nav>
+    </div>
+</footer>
+
+</body>
+</html>

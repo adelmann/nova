@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nova – Buchhaltung & Business-Tool für Kleingewerbe</title>
+<meta name="description" content="Nova ist ein webbasiertes Buchhaltungs- und Business-Tool für deutsches Kleingewerbe: Angebote, Rechnungen, Ausgaben, EÜR, GoBD-konform. Reines PHP, SQLite, ohne Node – läuft auf einfachem Shared Hosting.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site">
+    <div class="wrap">
+        <a class="brand" href="index.html"><span class="logo">N</span> Nova</a>
+        <button class="nav-toggle" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+        <nav class="main" id="nav">
+            <a href="index.html">Start</a>
+            <a href="features.html">Features</a>
+            <a href="anleitung.html">Anleitung</a>
+            <a class="cta" href="https://github.com/adelmann/nova" rel="noopener">Auf GitHub</a>
+        </nav>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="wrap">
+        <span class="badge">Open Source · MIT-Lizenz · GoBD-orientiert</span>
+        <h1>Buchhaltung für dein <span class="grad">Kleingewerbe</span> – schlank und selbst gehostet</h1>
+        <p class="lead">Nova ist ein webbasiertes Business- und Buchhaltungstool für deutsche Kleingewerbe: Kunden, Angebote, Rechnungen, Ausgaben, Belege und Einnahmen-Überschuss-Rechnung. Reines PHP &amp; SQLite – ohne Node, ohne Build-Schritt, deploybar auf einfachem Shared Hosting.</p>
+        <div class="btn-row">
+            <a class="btn primary" href="anleitung.html">Loslegen &amp; installieren</a>
+            <a class="btn" href="https://github.com/adelmann/nova" rel="noopener">Quellcode ansehen</a>
+        </div>
+    </div>
+</section>
+
+<section class="block">
+    <div class="wrap">
+        <div class="strip">
+            <div class="stat"><b>0</b><span>Node / Build-Schritte</span></div>
+            <div class="stat"><b>PHP&nbsp;8.1+</b><span>+ SQLite</span></div>
+            <div class="stat"><b>PWA</b><span>auf dem Handy installierbar</span></div>
+            <div class="stat"><b>GoBD</b><span>unveränderbares Journal</span></div>
+        </div>
+    </div>
+</section>
+
+<section class="block">
+    <div class="wrap">
+        <h2>Alles für den Geschäftsalltag</h2>
+        <p class="sub">Vom ersten Angebot bis zur fertigen EÜR – Nova deckt den kompletten Ablauf eines kleinen Betriebs ab, ohne Abo und ohne Cloud-Zwang.</p>
+        <div class="grid">
+            <div class="card">
+                <div class="ico">🧾</div>
+                <h3>Angebote &amp; Rechnungen</h3>
+                <p>Angebote per Klick in Rechnungen umwandeln, lückenlose Nummern, Finalisierung/Sperre (GoBD), Storno und Zahlungserfassung.</p>
+            </div>
+            <div class="card">
+                <div class="ico">⏰</div>
+                <h3>Mahnwesen &amp; Wiederkehrendes</h3>
+                <p>Mehrstufige Mahnungen als PDF &amp; E-Mail, automatische Zahlungserinnerungen und wiederkehrende Rechnungen.</p>
+            </div>
+            <div class="card">
+                <div class="ico">💳</div>
+                <h3>Online bezahlen</h3>
+                <p>Optionaler Bezahllink per Stripe oder PayPal. Der Bruttobetrag wird als Einnahme, die Anbietergebühr automatisch als Betriebsausgabe gebucht.</p>
+            </div>
+            <div class="card">
+                <div class="ico">📂</div>
+                <h3>Ausgaben &amp; Belege</h3>
+                <p>Ausgaben mit EÜR-Kategorie, Beleg-Upload als Foto oder PDF, CSV-Bankimport mit automatischem Zahlungsabgleich.</p>
+            </div>
+            <div class="card">
+                <div class="ico">📊</div>
+                <h3>EÜR &amp; Exporte</h3>
+                <p>Automatisches Buchungsjournal, EÜR-Auswertung nach Monat/Kategorie, CSV/PDF-Export, DATEV-Buchungsstapel und Jahres-ZIP.</p>
+            </div>
+            <div class="card">
+                <div class="ico">📄</div>
+                <h3>E-Rechnung (XRechnung)</h3>
+                <p>Export als XRechnung-3.0-XML für Aufträge der öffentlichen Hand und B2B-Empfänger, die das elektronische Format verlangen.</p>
+            </div>
+            <div class="card">
+                <div class="ico">🔐</div>
+                <h3>Mehrbenutzer, Rollen &amp; 2FA</h3>
+                <p>Rollen für Inhaber, Mitarbeiter und Steuerberater (nur lesend), Zwei-Faktor-Authentifizierung (TOTP) und Passwort-Reset.</p>
+            </div>
+            <div class="card">
+                <div class="ico">💾</div>
+                <h3>Verschlüsselte Backups</h3>
+                <p>AES-256-ZIP aus Datenbank und Uploads – auf Knopfdruck, per E-Mail oder automatisch via Cron. Self-Update über GitHub.</p>
+            </div>
+            <div class="card">
+                <div class="ico">📱</div>
+                <h3>PWA &amp; KI-Assistent</h3>
+                <p>Als App auf dem Handy installierbar; optionaler KI-Assistent über die Anthropic-API für Fragen und Hilfestellung.</p>
+            </div>
+        </div>
+        <p style="margin-top:28px"><a href="features.html">Alle Features im Detail →</a></p>
+    </div>
+</section>
+
+<section class="block center">
+    <div class="wrap">
+        <h2>Deine Daten bleiben bei dir</h2>
+        <p class="sub">Nova läuft auf deinem eigenen Webspace. Keine fremde Cloud, kein Abo, keine Weitergabe deiner Geschäftsdaten. Die SQLite-Datenbank und alle Belege liegen ausschließlich auf deinem Server.</p>
+        <div class="btn-row">
+            <a class="btn primary" href="anleitung.html">Installations-Anleitung</a>
+            <a class="btn" href="https://github.com/adelmann/nova" rel="noopener">Auf GitHub ansehen</a>
+        </div>
+    </div>
+</section>
+
+<footer class="site">
+    <div class="wrap">
+        <div class="copy">© 2026 Adelmann Solutions · Nova · MIT-Lizenz · ohne Gewährleistung</div>
+        <nav>
+            <a href="features.html">Features</a>
+            <a href="anleitung.html">Anleitung</a>
+            <a href="https://github.com/adelmann/nova" rel="noopener">GitHub</a>
+            <a href="impressum.html">Impressum</a>
+            <a href="datenschutz.html">Datenschutz</a>
+        </nav>
+    </div>
+</footer>
+
+</body>
+</html>

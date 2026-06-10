@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anleitung – Nova installieren &amp; nutzen</title>
+<meta name="description" content="Schritt-für-Schritt: Nova auf Shared Hosting oder lokal installieren, Ersteinrichtung, tägliche Bedienung, Online-Zahlung einrichten, Backups, Cron und Updates.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site">
+    <div class="wrap">
+        <a class="brand" href="index.html"><span class="logo">N</span> Nova</a>
+        <button class="nav-toggle" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+        <nav class="main" id="nav">
+            <a href="index.html">Start</a>
+            <a href="features.html">Features</a>
+            <a href="anleitung.html">Anleitung</a>
+            <a class="cta" href="https://github.com/adelmann/nova" rel="noopener">Auf GitHub</a>
+        </nav>
+    </div>
+</header>
+
+<div class="wrap doc">
+    <h1>Anleitung</h1>
+    <p class="lead">In wenigen Minuten von der leeren Domain zur fertig eingerichteten Buchhaltung.</p>
+
+    <div class="toc">
+        <strong>Inhalt</strong>
+        <ul>
+            <li><a href="#anforderungen">Anforderungen</a></li>
+            <li><a href="#hosting">Auf Shared Hosting installieren</a></li>
+            <li><a href="#lokal">Lokal (Docker / PHP)</a></li>
+            <li><a href="#setup">Ersteinrichtung</a></li>
+            <li><a href="#alltag">Täglicher Ablauf</a></li>
+            <li><a href="#zahlung">Online-Zahlung einrichten</a></li>
+            <li><a href="#backup">Backups &amp; Cron</a></li>
+            <li><a href="#updates">Updates</a></li>
+            <li><a href="#pwa">Als App installieren (PWA)</a></li>
+        </ul>
+    </div>
+
+    <h2 id="anforderungen">Anforderungen</h2>
+    <ul>
+        <li><strong>PHP 8.1+</strong> mit den Extensions <code>pdo_sqlite</code>, <code>mbstring</code>, <code>dom</code>, <code>gd</code>, <code>zip</code>, <code>curl</code>.</li>
+        <li>Webserver mit <code>mod_rewrite</code> (Apache); Docroot zeigt auf <code>public/</code>.</li>
+        <li>Für die PWA-Installation und Online-Zahlung: <strong>HTTPS</strong>.</li>
+    </ul>
+
+    <h2 id="hosting">Auf Shared Hosting installieren (empfohlen)</h2>
+    <ol class="steps">
+        <li>
+            <h3>Dateien hochladen</h3>
+            <p>Das aktuelle Release als ZIP von GitHub laden und <strong>inklusive <code>vendor/</code></strong> in den Webspace entpacken/hochladen. Ein <code>composer install</code> ist <em>nicht</em> nötig. Du brauchst weder <code>.git/</code> noch die <code>docker-*</code>-Dateien.</p>
+        </li>
+        <li>
+            <h3>Docroot setzen</h3>
+            <p>Den Docroot der (Sub-)Domain auf den Ordner <code>public/</code> zeigen lassen. Geht das bei deinem Hoster nicht, lege einfach alles in den Docroot – die mitgelieferte <code>.htaccess</code> leitet nach <code>public/</code> um und sperrt <code>src/</code>, <code>storage/</code> und <code>vendor/</code>.</p>
+        </li>
+        <li>
+            <h3>Schreibrechte vergeben</h3>
+            <p>Stelle sicher, dass der Ordner <code>storage/</code> beschreibbar ist:</p>
+            <pre><code>chmod -R 775 storage</code></pre>
+        </li>
+        <li>
+            <h3>Setup im Browser öffnen</h3>
+            <p>Rufe deine Domain auf – der <strong>Setup-Assistent</strong> unter <code>/setup</code> legt das Datenbankschema an, erstellt deinen Admin-Zugang und erfasst die Firmen-Basisdaten.</p>
+        </li>
+    </ol>
+    <div class="callout">
+        <strong>Alternative per Kommandozeile:</strong>
+        <pre><code>php bin/migrate.php
+php bin/seed-admin.php deine@mail.de "Passwort" "Dein Name"</code></pre>
+    </div>
+
+    <h2 id="lokal">Lokal entwickeln/testen</h2>
+    <h3>Mit Docker</h3>
+    <pre><code>docker compose up --build   # migriert, legt Admin an, läuft auf :8000</code></pre>
+    <h3>Mit nativem PHP</h3>
+    <pre><code>php bin/migrate.php
+php -S localhost:8000 -t public public/index.php</code></pre>
+
+    <h2 id="setup">Ersteinrichtung</h2>
+    <ul>
+        <li>Im Setup deine <strong>Firmendaten</strong> hinterlegen (Name, Anschrift, Steuernummer/USt-IdNr., ggf. Kleinunternehmer-Regelung).</li>
+        <li>Unter <strong>Einstellungen → Firma</strong> Logo und Briefkopf ergänzen – diese erscheinen auf allen PDFs.</li>
+        <li>Unter <strong>Einstellungen → E-Mail</strong> den Versand (SMTP oder <code>mail()</code>) sowie Signatur und Textvorlagen einrichten.</li>
+        <li>Bei Bedarf weitere <strong>Benutzer</strong> einladen und Rollen vergeben (Inhaber, Mitarbeiter, Steuerberater).</li>
+    </ul>
+
+    <h2 id="alltag">Täglicher Ablauf</h2>
+    <ol class="steps">
+        <li>
+            <h3>Kunde &amp; Angebot</h3>
+            <p>Kunden anlegen, ein Angebot erstellen und – sobald angenommen – per Klick in eine Rechnung umwandeln.</p>
+        </li>
+        <li>
+            <h3>Rechnung festschreiben &amp; versenden</h3>
+            <p>Die Rechnung erhält beim Festschreiben eine lückenlose Nummer und wird gesperrt (GoBD). Versand als PDF per E-Mail – optional mit Online-Bezahllink.</p>
+        </li>
+        <li>
+            <h3>Zahlungen erfassen</h3>
+            <p>Zahlungseingänge manuell erfassen oder per <strong>CSV-Bankimport</strong> automatisch zuordnen. Überfällige Rechnungen lassen sich anmahnen.</p>
+        </li>
+        <li>
+            <h3>Ausgaben &amp; Belege</h3>
+            <p>Belege als Foto/PDF hochladen und als Ausgabe mit EÜR-Kategorie verbuchen.</p>
+        </li>
+        <li>
+            <h3>Auswerten &amp; exportieren</h3>
+            <p>Die EÜR jederzeit einsehen und als PDF/CSV, DATEV-Buchungsstapel oder Jahres-ZIP für die Steuerberatung exportieren.</p>
+        </li>
+    </ol>
+
+    <h2 id="zahlung">Online-Zahlung einrichten (optional)</h2>
+    <p>Unter <strong>Einstellungen → Online-Zahlung</strong>. Ohne hinterlegte Schlüssel erscheint kein Bezahllink.</p>
+    <h3>Stripe</h3>
+    <ul>
+        <li>Im Stripe-Dashboard den <strong>Secret Key</strong> (<code>sk_live_…</code> bzw. <code>sk_test_…</code>) kopieren und eintragen.</li>
+        <li>Einen <strong>Webhook</strong> auf die in den Einstellungen angezeigte URL <code>…/webhook/stripe</code> einrichten (Event <code>checkout.session.completed</code>) und das dort erzeugte <strong>Signing Secret</strong> (<code>whsec_…</code>) hinterlegen.</li>
+    </ul>
+    <h3>PayPal</h3>
+    <ul>
+        <li>Im PayPal-Developer-Dashboard eine App anlegen und <strong>Client-ID</strong> und <strong>Secret</strong> eintragen.</li>
+        <li>Modus <strong>Sandbox</strong> zum Testen, <strong>Live</strong> für echte Zahlungen. Ein Webhook ist nicht nötig – die Zahlung wird bei der Rückkehr abgeschlossen und verbucht.</li>
+    </ul>
+    <div class="callout">
+        Bei beiden Anbietern wird der <strong>Bruttobetrag als Einnahme</strong> und die <strong>Gebühr automatisch als Betriebsausgabe</strong> gebucht. Die EÜR-Kategorie für die Gebühr (Standard: <em>Bankgebühren</em>) ist einstellbar.
+    </div>
+
+    <h2 id="backup">Backups &amp; Cron</h2>
+    <ul>
+        <li>Unter <strong>Einstellungen → Datensicherung</strong> ein Backup auf Knopfdruck erstellen, herunterladen oder löschen.</li>
+        <li>Automatisch per <strong>Cron</strong> – entweder per CLI:</li>
+    </ul>
+    <pre><code>php bin/backup.php</code></pre>
+    <p>… oder über den token-geschützten Web-Cron (die genaue URL steht in den Einstellungen):</p>
+    <pre><code>wget -qO- "https://deine-domain.de/cron/backup?token=…"</code></pre>
+    <p>Für Wartungsaufgaben (überfällige Rechnungen markieren, automatische Erinnerungen, Update-Check) zusätzlich regelmäßig:</p>
+    <pre><code>php bin/sweep.php</code></pre>
+
+    <h2 id="updates">Updates</h2>
+    <p>Nova prüft GitHub auf neue Releases. Unter <strong>Einstellungen → System</strong> lässt sich ein Update <strong>per Klick installieren</strong>: zuerst Backup, dann Download und Entpacken des Release-ZIP, dann die Datenbank-Migrationen. <code>storage/</code>, <code>config.php</code> und die Datenbank bleiben dabei unangetastet.</p>
+
+    <h2 id="pwa">Als App installieren (PWA)</h2>
+    <ul>
+        <li><strong>iOS (Safari):</strong> Teilen-Menü → „Zum Startbildschirm hinzufügen".</li>
+        <li><strong>Android (Chrome):</strong> Menü → „App installieren".</li>
+        <li>Es werden nur statische Assets gecacht – niemals Seiten, PDFs oder Geschäftsdaten.</li>
+    </ul>
+
+    <div class="callout warn">
+        <strong>Wichtig:</strong> Nova ersetzt keine Steuerberatung. Prüfe die Auswertungen vor jeder Abgabe und kläre steuerliche Fragen mit deiner Beratung. Nutzung auf eigenes Risiko, ohne Gewährleistung.
+    </div>
+
+    <div class="btn-row" style="margin-top:34px">
+        <a class="btn primary" href="https://github.com/adelmann/nova" rel="noopener">Release herunterladen</a>
+        <a class="btn" href="features.html">Alle Features</a>
+    </div>
+</div>
+
+<footer class="site">
+    <div class="wrap">
+        <div class="copy">© 2026 Adelmann Solutions · Nova · MIT-Lizenz · ohne Gewährleistung</div>
+        <nav>
+            <a href="index.html">Start</a>
+            <a href="features.html">Features</a>
+            <a href="https://github.com/adelmann/nova" rel="noopener">GitHub</a>
+            <a href="impressum.html">Impressum</a>
+            <a href="datenschutz.html">Datenschutz</a>
+        </nav>
+    </div>
+</footer>
+
+</body>
+</html>
