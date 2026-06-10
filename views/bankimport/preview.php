@@ -1,19 +1,23 @@
 <?php
-/** @var array<int,array{date:string,amount:int,purpose:string}> $rows */
+/** @var array<int,array{date:string,amount:int,purpose:string,match_id:int,match_label:string}> $rows */
 ?>
 <div class="panel">
-    <h2>Vorschau – zu importierende Ausgaben auswählen</h2>
+    <h2>Vorschau – Ausgaben übernehmen &amp; Zahlungen zuordnen</h2>
     <form method="post" action="/bankimport/buchen">
         <?= csrf_field() ?>
         <div class="table-wrap" style="box-shadow:none;border:1px solid var(--border);">
             <table>
-                <thead><tr><th><input type="checkbox" onclick="document.querySelectorAll('.rowsel').forEach(c=>c.checked=this.checked)" checked></th><th>Datum</th><th>Verwendungszweck</th><th class="num">Betrag</th><th>Typ</th></tr></thead>
+                <thead><tr><th>Übernehmen</th><th>Datum</th><th>Verwendungszweck</th><th class="num">Betrag</th><th>Aktion</th></tr></thead>
                 <tbody>
-                <?php foreach ($rows as $i => $r): $isExpense = $r['amount'] < 0; ?>
+                <?php foreach ($rows as $i => $r): ?>
+                    <?php $isExpense = $r['amount'] < 0; $hasMatch = !$isExpense && (int) ($r['match_id'] ?? 0) > 0; ?>
                     <tr>
                         <td>
                             <?php if ($isExpense): ?>
                                 <input type="checkbox" class="rowsel" name="row_select[]" value="<?= $i ?>" checked>
+                            <?php elseif ($hasMatch): ?>
+                                <input type="checkbox" name="row_pay[]" value="<?= $i ?>" checked>
+                                <input type="hidden" name="row_match[<?= $i ?>]" value="<?= (int) $r['match_id'] ?>">
                             <?php endif; ?>
                             <input type="hidden" name="row_date[<?= $i ?>]" value="<?= e($r['date']) ?>">
                             <input type="hidden" name="row_amount[<?= $i ?>]" value="<?= (int) $r['amount'] ?>">
@@ -22,16 +26,24 @@
                         <td><?= dt($r['date']) ?></td>
                         <td><?= e($r['purpose']) ?></td>
                         <td class="num" style="<?= $isExpense ? 'color:var(--error)' : 'color:var(--success)' ?>"><?= money((int) $r['amount']) ?></td>
-                        <td><?= $isExpense ? 'Ausgabe' : '<span class="muted">Eingang</span>' ?></td>
+                        <td>
+                            <?php if ($isExpense): ?>
+                                Als Ausgabe buchen
+                            <?php elseif ($hasMatch): ?>
+                                Zahlung → <strong><?= e($r['match_label']) ?></strong>
+                            <?php else: ?>
+                                <span class="muted">Eingang – keine passende Rechnung</span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
         <div class="form-actions">
-            <button type="submit" class="btn">Ausgewählte als Ausgaben buchen</button>
+            <button type="submit" class="btn">Übernehmen</button>
             <a href="/bankimport" class="btn btn-secondary">Abbrechen</a>
         </div>
     </form>
 </div>
-<p class="help">Nur negative Beträge (Ausgaben) werden übernommen. Zahlungseingänge bitte direkt bei der jeweiligen Rechnung erfassen.</p>
+<p class="help">Negative Beträge werden als Ausgaben gebucht. Zahlungseingänge werden – sofern eine offene Rechnung per Nummer im Verwendungszweck oder per Betrag erkannt wird – dieser Rechnung als Zahlung zugeordnet (Rechnung wird dann ggf. auf „bezahlt" gesetzt). Nicht zugeordnete Eingänge werden ignoriert.</p>

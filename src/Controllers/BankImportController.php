@@ -9,6 +9,8 @@ use Nova\Core\Format;
 use Nova\Core\Request;
 use Nova\Core\Session;
 use Nova\Models\ExpenseRepository;
+use Nova\Models\InvoiceRepository;
+use Nova\Models\PaymentRepository;
 use Nova\Services\AuditService;
 use Nova\Services\LedgerService;
 
@@ -74,7 +76,46 @@ final class BankImportController extends Controller
             $this->redirect('/bankimport');
         }
 
+        // Zahlungseingänge (positive Beträge) offenen Rechnungen zuordnen.
+        $open = (new InvoiceRepository())->openForMatching();
+        foreach ($rows as &$row) {
+            $row['match_id']    = 0;
+            $row['match_label'] = '';
+            if ($row['amount'] <= 0) {
+                continue;
+            }
+            $match = self::matchInvoice($row, $open);
+            if ($match !== null) {
+                $row['match_id']    = $match['id'];
+                $row['match_label'] = $match['number'] . ' · offen ' . Format::money($match['open_cents']);
+            }
+        }
+        unset($row);
+
         $this->view('bankimport/preview', ['title' => 'Bankimport – Vorschau', 'rows' => $rows]);
+    }
+
+    /**
+     * Findet eine passende offene Rechnung: zuerst per Rechnungsnummer im
+     * Verwendungszweck, dann per exakt offenem Betrag.
+     *
+     * @param array{amount:int,purpose:string} $row
+     * @param array<int,array{id:int,number:string,open_cents:int}> $open
+     * @return array{id:int,number:string,open_cents:int}|null
+     */
+    private static function matchInvoice(array $row, array $open): ?array
+    {
+        foreach ($open as $o) {
+            if ($o['number'] !== '' && stripos($row['purpose'], $o['number']) !== false) {
+                return $o;
+            }
+        }
+        foreach ($open as $o) {
+            if ($o['open_cents'] === $row['amount']) {
+                return $o;
+            }
+        }
+        return null;
     }
 
     public function commit(Request $request): void
@@ -85,6 +126,30 @@ final class BankImportController extends Controller
         $amounts  = (array) ($request->post['row_amount'] ?? []);
         $purposes = (array) ($request->post['row_purpose'] ?? []);
         $selected = (array) ($request->post['row_select'] ?? []);
+        $payRows  = (array) ($request->post['row_pay'] ?? []);
+        $matches  = (array) ($request->post['row_match'] ?? []);
+
+        // --- Zahlungseingänge offenen Rechnungen zuordnen ---
+        $invRepo     = new InvoiceRepository();
+        $paymentRepo = new PaymentRepository();
+        $paid        = 0;
+        foreach ($payRows as $i) {
+            $i      = (int) $i;
+            $invId  = (int) ($matches[$i] ?? 0);
+            $amount = (int) ($amounts[$i] ?? 0);
+            if ($invId <= 0 || $amount <= 0) {
+                continue;
+            }
+            $inv = $invRepo->find($invId);
+            if ($inv === null || (int) $inv['is_locked'] !== 1 || $inv['status'] === 'cancelled') {
+                continue;
+            }
+            $paidOn = (string) ($dates[$i] ?? date('Y-m-d')) ?: date('Y-m-d');
+            $pid = $paymentRepo->createPayment($invId, $paidOn, $amount, 'Bankimport', (string) ($purposes[$i] ?? ''));
+            LedgerService::recordIncome($paidOn, $amount, 'payment', $pid, 'Umsatzerlöse', 'Zahlungseingang Rechnung ' . $inv['number']);
+            $invRepo->recalcPaymentStatus($invId);
+            $paid++;
+        }
 
         $repo    = new ExpenseRepository();
         $count   = 0;
@@ -109,9 +174,9 @@ final class BankImportController extends Controller
             $count++;
         }
 
-        AuditService::record('create', 'bankimport', null, null, ['imported_expenses' => $count]);
-        Session::flash('success', "{$count} Ausgabe(n) aus dem Bankimport übernommen.");
-        $this->redirect('/ausgaben');
+        AuditService::record('create', 'bankimport', null, null, ['imported_expenses' => $count, 'matched_payments' => $paid]);
+        Session::flash('success', "{$count} Ausgabe(n) übernommen, {$paid} Zahlung(en) zugeordnet.");
+        $this->redirect($paid > 0 && $count === 0 ? '/rechnungen' : '/ausgaben');
     }
 
     private static function normalizeDate(string $raw): string

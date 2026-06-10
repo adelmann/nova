@@ -223,6 +223,26 @@ final class InvoiceRepository extends BaseRepository
     }
 
     /**
+     * Offene (finalisierte, nicht stornierte, nicht voll bezahlte) Rechnungen
+     * für den Zahlungsabgleich.
+     *
+     * @return array<int,array{id:int,number:string,open_cents:int}>
+     */
+    public function openForMatching(): array
+    {
+        $rows = $this->db()->fetchAll(
+            "SELECT id, number, (gross_total_cents - paid_total_cents) AS open_cents
+             FROM invoice
+             WHERE is_locked = 1 AND status IN ('sent','overdue')
+               AND (gross_total_cents - paid_total_cents) > 0
+             ORDER BY invoice_date"
+        );
+        return array_map(static fn (array $r): array => [
+            'id' => (int) $r['id'], 'number' => (string) $r['number'], 'open_cents' => (int) $r['open_cents'],
+        ], $rows);
+    }
+
+    /**
      * Markiert alle fälligen, noch offenen Rechnungen als 'overdue'.
      * Gibt die Anzahl der aktualisierten Rechnungen zurück.
      *
