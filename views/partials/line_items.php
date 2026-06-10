@@ -2,7 +2,7 @@
 /** @var array<int,array<string,mixed>> $items */
 $rows = $items ?? [];
 if ($rows === []) {
-    $rows = [['description' => '', 'quantity' => 1, 'unit' => 'Stk', 'unit_price_cents' => 0]];
+    $rows = [['description' => '', 'quantity' => 1, 'unit' => '', 'unit_price_cents' => 0]];
 }
 ?>
 <?php $catalog = (new \Nova\Models\CatalogItemRepository())->active(); ?>
@@ -35,7 +35,7 @@ if ($rows === []) {
             <tr class="item-row">
                 <td><input type="text" name="item_description[]" value="<?= e($it['description']) ?>" placeholder="Leistung / Position"></td>
                 <td><input type="text" name="item_quantity[]" value="<?= e(rtrim(rtrim(number_format((float) $it['quantity'], 2, ',', ''), '0'), ',')) ?>" inputmode="decimal" class="ta-right"></td>
-                <td><input type="text" name="item_unit[]" value="<?= e($it['unit']) ?>" list="nova-units"></td>
+                <td><input type="text" name="item_unit[]" value="<?= e($it['unit']) ?>" list="nova-units" placeholder="Einheit"></td>
                 <td><input type="text" name="item_unit_price[]" value="<?= e(amount((int) $it['unit_price_cents'])) ?>" inputmode="decimal" class="ta-right"></td>
                 <td><button type="button" class="btn btn-secondary btn-sm" onclick="novaRemoveRow(this)">✕</button></td>
             </tr>
@@ -55,7 +55,7 @@ if ($rows === []) {
     <tr class="item-row">
         <td><input type="text" name="item_description[]" placeholder="Leistung / Position"></td>
         <td><input type="text" name="item_quantity[]" value="1" inputmode="decimal" class="ta-right"></td>
-        <td><input type="text" name="item_unit[]" value="Stk" list="nova-units"></td>
+        <td><input type="text" name="item_unit[]" value="" list="nova-units" placeholder="Einheit"></td>
         <td><input type="text" name="item_unit_price[]" value="0,00" inputmode="decimal" class="ta-right"></td>
         <td><button type="button" class="btn btn-secondary btn-sm" onclick="novaRemoveRow(this)">✕</button></td>
     </tr>

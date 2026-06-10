@@ -28,7 +28,7 @@
             row.remove();
         } else {
             // Letzte Zeile nicht entfernen, nur leeren.
-            row.querySelectorAll('input').forEach(function (i) { i.value = i.name === 'item_quantity[]' ? '1' : (i.name === 'item_unit[]' ? 'Stk' : ''); });
+            row.querySelectorAll('input').forEach(function (i) { i.value = i.name === 'item_quantity[]' ? '1' : ''; });
         }
     };
 
