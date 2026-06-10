@@ -25,8 +25,9 @@ $repoUrl = $repo !== '' ? 'https://github.com/' . $repo : '';
                 · <a href="/einstellungen">Update auf <?= e($update['latest']) ?> verfügbar</a>
             <?php endif; ?>
         </dd>
+        <dt>Projektseite</dt><dd><a href="https://adelmann.github.io/nova/" target="_blank" rel="noopener">adelmann.github.io/nova</a> · <a href="https://adelmann.github.io/nova/anleitung.html" target="_blank" rel="noopener">Anleitung</a></dd>
         <?php if ($repoUrl !== ''): ?>
-            <dt>Projekt</dt><dd><a href="<?= e($repoUrl) ?>" target="_blank" rel="noopener"><?= e($repo) ?></a></dd>
+            <dt>Quellcode</dt><dd><a href="<?= e($repoUrl) ?>" target="_blank" rel="noopener"><?= e($repo) ?></a></dd>
         <?php endif; ?>
         <dt>Lizenz</dt><dd>MIT © 2026 Adelmann Solutions</dd>
     </dl>
