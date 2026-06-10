@@ -120,6 +120,7 @@
         <li><strong>Verschlüsselte Backups</strong> (AES-256-ZIP, sofern der Server es unterstützt) aus Datenbank und Uploads.</li>
         <li>Auf Knopfdruck, zusätzlich per E-Mail und/oder ins Serververzeichnis; automatisch per <strong>Cron</strong> (CLI oder token-geschützte Web-URL).</li>
         <li><strong>Konfigurierbare Häufigkeit:</strong> Mindestabstand für das Anlegen und ein separates Intervall für den E-Mail-Versand. Die letzten 14 Backups werden aufbewahrt.</li>
+        <li><strong>Cloud-Backup</strong> (optional): automatischer Upload in <strong>WebDAV</strong> (Nextcloud/ownCloud), <strong>S3-kompatibel</strong> (Backblaze B2, Wasabi, AWS, Hetzner), <strong>FTP/FTPS</strong>, <strong>Dropbox</strong> und <strong>Google Drive</strong> – jedes Ziel einzeln aktivierbar.</li>
         <li><strong>Wartungs-Cron</strong> (CLI <code>bin/sweep.php</code> oder Web-URL) für wiederkehrende Rechnungen/Ausgaben, AfA-Buchungen, überfällige Rechnungen und Auto-Mahnungen – alle Aufgaben idempotent.</li>
         <li><strong>Self-Update über GitHub:</strong> neue Version per Klick – erst Backup, dann Download/Entpacken, dann Migrationen. Datenbank, <code>config.php</code> und <code>storage/</code> bleiben unangetastet.</li>
     </ul>
