@@ -17,7 +17,8 @@ final class CloudBackupService
         return trim((string) ($s['backup_webdav_url'] ?? '')) !== ''
             || trim((string) ($s['backup_s3_bucket'] ?? '')) !== ''
             || trim((string) ($s['backup_ftp_host'] ?? '')) !== ''
-            || trim((string) ($s['backup_dropbox_token'] ?? '')) !== '';
+            || trim((string) ($s['backup_dropbox_token'] ?? '')) !== ''
+            || trim((string) ($s['backup_gdrive_refresh_token'] ?? '')) !== '';
     }
 
     /**
@@ -42,6 +43,9 @@ final class CloudBackupService
         }
         if (trim((string) ($s['backup_dropbox_token'] ?? '')) !== '') {
             $log[] = self::guard('Dropbox', fn () => self::dropbox($zipPath, $filename, $s));
+        }
+        if (trim((string) ($s['backup_gdrive_refresh_token'] ?? '')) !== '') {
+            $log[] = self::guard('Google Drive', fn () => self::gdrive($zipPath, $filename, $s));
         }
         return $log;
     }
@@ -149,6 +153,73 @@ final class CloudBackupService
             throw new \RuntimeException($msg);
         }
         return 'Cloud Dropbox: hochgeladen (' . $filename . ').';
+    }
+
+    /**
+     * Google Drive via OAuth2-Refresh-Token: Access-Token holen und das ZIP per
+     * Multipart-Upload (Metadaten + Inhalt) in den optionalen Zielordner laden.
+     *
+     * @param array<string,mixed> $s
+     */
+    private static function gdrive(string $zipPath, string $filename, array $s): string
+    {
+        // 1. Access-Token aus dem Refresh-Token holen.
+        $ch = curl_init('https://oauth2.googleapis.com/token');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_POSTFIELDS     => http_build_query([
+                'client_id'     => (string) $s['backup_gdrive_client_id'],
+                'client_secret' => (string) $s['backup_gdrive_client_secret'],
+                'refresh_token' => (string) $s['backup_gdrive_refresh_token'],
+                'grant_type'    => 'refresh_token',
+            ]),
+        ]);
+        $body   = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        $json = json_decode($body === false ? '' : (string) $body, true);
+        if ($status !== 200 || empty($json['access_token'])) {
+            throw new \RuntimeException('Token-Anforderung fehlgeschlagen: ' . ($json['error_description'] ?? $json['error'] ?? ('HTTP ' . $status)));
+        }
+        $accessToken = (string) $json['access_token'];
+
+        // 2. Multipart-Upload (Metadaten + Datei).
+        $meta = ['name' => $filename];
+        $folderId = trim((string) ($s['backup_gdrive_folder_id'] ?? ''));
+        if ($folderId !== '') {
+            $meta['parents'] = [$folderId];
+        }
+        $boundary = 'nova' . bin2hex(random_bytes(8));
+        $payload  = "--{$boundary}\r\n"
+            . "Content-Type: application/json; charset=UTF-8\r\n\r\n"
+            . json_encode($meta) . "\r\n"
+            . "--{$boundary}\r\n"
+            . "Content-Type: application/zip\r\n\r\n"
+            . (string) file_get_contents($zipPath) . "\r\n"
+            . "--{$boundary}--";
+
+        $ch = curl_init('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_TIMEOUT        => 180,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $accessToken,
+                'Content-Type: multipart/related; boundary=' . $boundary,
+            ],
+        ]);
+        $body   = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err    = curl_error($ch);
+        curl_close($ch);
+        if ($body === false || $status < 200 || $status >= 300) {
+            $msg = $err !== '' ? $err : ('HTTP ' . $status . ' ' . substr((string) $body, 0, 200));
+            throw new \RuntimeException($msg);
+        }
+        return 'Cloud Google Drive: hochgeladen (' . $filename . ').';
     }
 
     /**

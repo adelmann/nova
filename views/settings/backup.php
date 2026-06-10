@@ -173,6 +173,27 @@ $defaultBackupDir = (string) ($GLOBALS['nova_config']['paths']['backups'] ?? '')
             </div>
         </div>
         <span class="help">Dropbox: in der <a href="https://www.dropbox.com/developers/apps" target="_blank" rel="noopener">App-Konsole</a> eine App (Scoped, <code>files.content.write</code>) anlegen und ein Access-Token erzeugen.</span>
+
+        <h3 style="margin:18px 0 6px; font-size:14px;">Google Drive</h3>
+        <div class="form-grid">
+            <div class="field">
+                <label for="backup_gdrive_client_id">OAuth Client-ID</label>
+                <input type="text" id="backup_gdrive_client_id" name="backup_gdrive_client_id" value="<?= e($s['backup_gdrive_client_id'] ?? '') ?>" autocomplete="off" placeholder="…apps.googleusercontent.com">
+            </div>
+            <div class="field">
+                <label for="backup_gdrive_client_secret">Client-Secret</label>
+                <input type="password" id="backup_gdrive_client_secret" name="backup_gdrive_client_secret" value="" autocomplete="new-password" placeholder="<?= !empty($s['backup_gdrive_client_secret']) ? '•••••••• (gespeichert)' : '' ?>">
+            </div>
+            <div class="field">
+                <label for="backup_gdrive_refresh_token">Refresh-Token</label>
+                <input type="password" id="backup_gdrive_refresh_token" name="backup_gdrive_refresh_token" value="" autocomplete="new-password" placeholder="<?= !empty($s['backup_gdrive_refresh_token']) ? '•••••••• (gespeichert)' : '1//…' ?>">
+            </div>
+            <div class="field">
+                <label for="backup_gdrive_folder_id">Ziel-Ordner-ID (optional)</label>
+                <input type="text" id="backup_gdrive_folder_id" name="backup_gdrive_folder_id" value="<?= e($s['backup_gdrive_folder_id'] ?? '') ?>" placeholder="aus der Drive-Ordner-URL">
+            </div>
+        </div>
+        <span class="help">Einrichtung: in der <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a> eine OAuth-Client-ID (Typ „Desktop") für die <em>Google Drive API</em> anlegen. Damit über den <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noopener">OAuth Playground</a> (eigene Client-Daten, Scope <code>drive.file</code>) ein Refresh-Token erzeugen. Die Ordner-ID steht in der URL des Drive-Ordners.</span>
     </div>
 
     <div class="form-actions">

@@ -208,13 +208,15 @@ final class SettingsController extends Controller
             'backup_ftp_path'    => $request->str('backup_ftp_path'),
             'backup_ftp_tls'     => $request->bool('backup_ftp_tls') ? 1 : 0,
             'backup_dropbox_path' => $request->str('backup_dropbox_path'),
+            'backup_gdrive_client_id' => $request->str('backup_gdrive_client_id'),
+            'backup_gdrive_folder_id' => $request->str('backup_gdrive_folder_id'),
         ];
         $backupPass = $request->str('backup_password');
         if ($backupPass !== '') {
             $data['backup_password'] = $backupPass;
         }
         // Geheimnisse nur bei Eingabe aktualisieren.
-        foreach (['backup_webdav_pass', 'backup_s3_secret', 'backup_ftp_pass', 'backup_dropbox_token'] as $secret) {
+        foreach (['backup_webdav_pass', 'backup_s3_secret', 'backup_ftp_pass', 'backup_dropbox_token', 'backup_gdrive_client_secret', 'backup_gdrive_refresh_token'] as $secret) {
             $val = $request->str($secret);
             if ($val !== '') {
                 $data[$secret] = $val;
