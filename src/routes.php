@@ -21,6 +21,7 @@ use Nova\Controllers\PasswordResetController;
 use Nova\Controllers\ProjectController;
 use Nova\Controllers\QuoteController;
 use Nova\Controllers\ReceiptController;
+use Nova\Controllers\RecurringController;
 use Nova\Controllers\ReminderController;
 use Nova\Controllers\ReportController;
 use Nova\Controllers\SettingsController;
@@ -156,6 +157,14 @@ return static function (Router $r): void {
     $r->post('/angebote/{id}/senden', [QuoteController::class, 'send'], cap: 'manage_sales');
     $r->post('/angebote/{id}/in-rechnung', [QuoteController::class, 'convertToInvoice'], cap: 'manage_sales');
 
+    // Wiederkehrende Rechnungen (Vertrieb).
+    $r->get('/wiederkehrend', [RecurringController::class, 'index'], cap: 'manage_sales');
+    $r->get('/wiederkehrend/neu', [RecurringController::class, 'create'], cap: 'manage_sales');
+    $r->post('/wiederkehrend', [RecurringController::class, 'store'], cap: 'manage_sales');
+    $r->get('/wiederkehrend/{id}/bearbeiten', [RecurringController::class, 'edit'], cap: 'manage_sales');
+    $r->post('/wiederkehrend/{id}', [RecurringController::class, 'update'], cap: 'manage_sales');
+    $r->post('/wiederkehrend/{id}/loeschen', [RecurringController::class, 'destroy'], cap: 'manage_sales');
+
     // Rechnungen – ansehen (Buchhaltung), ändern (Vertrieb).
     $r->get('/rechnungen', [InvoiceController::class, 'index'], cap: 'view_accounting');
     $r->get('/rechnungen/neu', [InvoiceController::class, 'create'], cap: 'manage_sales');
@@ -216,6 +225,7 @@ return static function (Router $r): void {
     $r->get('/exporte/einnahmen', [ExportController::class, 'incomeCsv'], cap: 'export');
     $r->get('/exporte/ausgaben', [ExportController::class, 'expensesCsv'], cap: 'export');
     $r->get('/exporte/journal', [ExportController::class, 'journalCsv'], cap: 'export');
+    $r->get('/exporte/datev', [ExportController::class, 'datevCsv'], cap: 'export');
     $r->get('/exporte/jahr', [ExportController::class, 'yearZip'], cap: 'export');
     $r->get('/exporte/belege', [ExportController::class, 'receiptsZip'], cap: 'export');
 

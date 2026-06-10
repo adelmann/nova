@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 use Nova\Core\DB;
 use Nova\Models\InvoiceRepository;
+use Nova\Services\RecurringService;
+use Nova\Services\ReminderService;
 use Nova\Services\UpdateService;
 
 $config = require dirname(__DIR__) . '/src/bootstrap.php';
@@ -21,6 +23,16 @@ $GLOBALS['nova_config'] = $config;
 
 $count = (new InvoiceRepository())->markOverdue();
 echo "» Sweep: {$count} Rechnung(en) auf 'überfällig' gesetzt.\n";
+
+// Wiederkehrende Rechnungen erzeugen.
+foreach (RecurringService::runDue($config) as $line) {
+    echo '» Wiederkehrend: ' . $line . "\n";
+}
+
+// Automatische Zahlungserinnerungen (falls aktiviert).
+foreach (ReminderService::sendAuto($config) as $line) {
+    echo '» Erinnerung: ' . $line . "\n";
+}
 
 // Update-Cache auffrischen (für die Anzeige im Tool).
 $u = UpdateService::check(true);

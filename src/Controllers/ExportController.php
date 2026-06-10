@@ -69,6 +69,38 @@ final class ExportController extends Controller
         Response::csv("Buchungsjournal-{$year}.csv", $this->csv($out));
     }
 
+    /**
+     * Buchungsstapel im DATEV-Spaltenformat (vereinfacht). Konto/Gegenkonto
+     * bleiben leer – diese ordnet der Steuerberater anhand seines Kontenrahmens
+     * zu. Soll/Haben: Einnahme = H, Ausgabe = S.
+     */
+    public function datevCsv(Request $request): void
+    {
+        $year = $request->int('jahr') ?: (int) date('Y');
+        $rows = DB::getInstance()->fetchAll(
+            "SELECT entry_date, type, category, description, amount_cents, reference_type, reference_id
+             FROM ledger_entry WHERE strftime('%Y', entry_date) = :y ORDER BY entry_date, id",
+            ['y' => (string) $year]
+        );
+        $out = [['Belegdatum', 'Belegfeld 1', 'Buchungstext', 'Umsatz', 'Soll/Haben', 'Konto', 'Gegenkonto', 'EUER-Kategorie']];
+        foreach ($rows as $r) {
+            $betrag = Format::amount(abs((int) $r['amount_cents']));
+            $sh     = $r['type'] === 'income' ? 'H' : 'S';
+            $beleg  = trim(($r['reference_type'] ?? '') . ' ' . ($r['reference_id'] ?? ''));
+            $out[] = [
+                date('d.m.Y', strtotime((string) $r['entry_date']) ?: time()),
+                $beleg,
+                (string) $r['description'],
+                $betrag,
+                $sh,
+                '', // Konto – vom Steuerberater
+                '', // Gegenkonto – vom Steuerberater
+                (string) $r['category'],
+            ];
+        }
+        Response::csv("Buchungsstapel-DATEV-{$year}.csv", $this->csv($out));
+    }
+
     /** ZIP aller archivierten Rechnungen + Belege eines Jahres. */
     public function yearZip(Request $request): void
     {

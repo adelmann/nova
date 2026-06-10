@@ -27,6 +27,11 @@ $pmValue = trim((string) ($s['payment_methods'] ?? '')) !== ''
                 <input type="number" id="default_payment_days" name="default_payment_days" value="<?= e($s['default_payment_days']) ?>" min="0" max="365">
             </div>
             <div class="field">
+                <label for="auto_reminder_days">Autom. Zahlungserinnerung nach X Tagen Überfälligkeit</label>
+                <input type="number" id="auto_reminder_days" name="auto_reminder_days" value="<?= e($s['auto_reminder_days'] ?? 0) ?>" min="0" max="365">
+                <span class="help">0 = aus. Sonst sendet der Cron einmalig eine freundliche Stufe-1-Erinnerung; weitere Mahnstufen bleiben manuell.</span>
+            </div>
+            <div class="field">
                 <label for="invoice_number_format">Rechnungsnummern-Format</label>
                 <input type="text" id="invoice_number_format" name="invoice_number_format" value="<?= e($s['invoice_number_format']) ?>">
                 <span class="help">{YYYY} = Jahr, {####} = fortlaufende Nummer (z.B. RE-2026-0001)</span>

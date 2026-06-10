@@ -13,6 +13,7 @@ $navGroups = [
         ['/projekte',     'Projekte',     '⚐', 'manage_sales'],
         ['/angebote',     'Angebote',     '✎', 'manage_sales'],
         ['/rechnungen',   'Rechnungen',   '€', 'view_accounting'],
+        ['/wiederkehrend','Wiederkehrend','↺', 'manage_sales'],
         ['/mahnungen',    'Mahnungen',    '!', 'manage_sales'],
         ['/katalog',      'Leistungskatalog', '≡', 'manage_sales'],
     ],

@@ -15,7 +15,9 @@
     <h2>CSV-Exporte <?= $year ?></h2>
     <p><a href="/exporte/einnahmen?jahr=<?= $year ?>" class="btn btn-secondary">Einnahmen (CSV)</a>
        <a href="/exporte/ausgaben?jahr=<?= $year ?>" class="btn btn-secondary">Ausgaben (CSV)</a>
-       <a href="/exporte/journal?jahr=<?= $year ?>" class="btn btn-secondary">Buchungsjournal (CSV)</a></p>
+       <a href="/exporte/journal?jahr=<?= $year ?>" class="btn btn-secondary">Buchungsjournal (CSV)</a>
+       <a href="/exporte/datev?jahr=<?= $year ?>" class="btn btn-secondary">Buchungsstapel DATEV (CSV)</a></p>
+    <p class="help" style="margin-bottom:0">Der DATEV-Buchungsstapel enthält die Spaltenstruktur; Konto/Gegenkonto ordnet dein Steuerberater nach seinem Kontenrahmen zu.</p>
 </div>
 
 <div class="panel">

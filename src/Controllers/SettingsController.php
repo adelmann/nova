@@ -87,6 +87,7 @@ final class SettingsController extends Controller
             'invoice_footer_text'   => $request->str('invoice_footer_text'),
             'quote_footer_text'     => $request->str('quote_footer_text'),
             'payment_methods'       => $this->normalizeLines($request->str('payment_methods')),
+            'auto_reminder_days'    => max(0, $request->int('auto_reminder_days', 0)),
         ], '/einstellungen/rechnungen');
     }
 
