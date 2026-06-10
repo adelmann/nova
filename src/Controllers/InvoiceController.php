@@ -20,6 +20,7 @@ use Nova\Services\AuditService;
 use Nova\Services\LedgerService;
 use Nova\Services\LineItemService;
 use Nova\Services\Mailer;
+use Nova\Services\PaymentService;
 use Nova\Services\PdfService;
 
 final class InvoiceController extends Controller
@@ -349,13 +350,27 @@ final class InvoiceController extends Controller
         $pdf      = $this->pdfBytes($invoice, $settings);
         $anrede   = $invoice['contact_name'] ?: $invoice['company_name'];
 
+        // Online-Bezahllink (falls Anbieter konfiguriert und noch offen).
+        $payUrl = '';
+        $open   = (int) $invoice['gross_total_cents'] - (int) $invoice['paid_total_cents'];
+        if ($open > 0 && PaymentService::providers($settings) !== []) {
+            $token  = $this->repo->ensurePayToken($id);
+            $base   = rtrim((string) ($GLOBALS['nova_config']['app_url'] ?? ''), '/');
+            if ($base === '') {
+                $scheme = (($_SERVER['HTTPS'] ?? '') !== '' && ($_SERVER['HTTPS'] ?? '') !== 'off') ? 'https' : 'http';
+                $base = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+            }
+            $payUrl = $base . '/zahlen/' . $token;
+        }
+
         $vars = [
-            '{kunde}'   => (string) $anrede,
-            '{nummer}'  => (string) $invoice['number'],
-            '{datum}'   => Format::date($invoice['invoice_date']),
-            '{betrag}'  => Format::money((int) $invoice['gross_total_cents']),
-            '{faellig}' => $invoice['due_date'] ? Format::date($invoice['due_date']) : '',
-            '{firma}'   => (string) ($settings['company_name'] ?? ''),
+            '{kunde}'    => (string) $anrede,
+            '{nummer}'   => (string) $invoice['number'],
+            '{datum}'    => Format::date($invoice['invoice_date']),
+            '{betrag}'   => Format::money((int) $invoice['gross_total_cents']),
+            '{faellig}'  => $invoice['due_date'] ? Format::date($invoice['due_date']) : '',
+            '{firma}'    => (string) ($settings['company_name'] ?? ''),
+            '{zahllink}' => $payUrl,
         ];
         $settings['email_signature'] = (string) ($settings['email_signature'] ?? '') ?: CompanySettingsRepository::DEFAULT_EMAIL_SIGNATURE;
         ['subject' => $subject, 'body' => $body] = Mailer::compose(
@@ -366,6 +381,11 @@ final class InvoiceController extends Controller
             CompanySettingsRepository::DEFAULT_INVOICE_EMAIL_BODY,
             $vars
         );
+
+        // Bezahllink anhängen, falls die Vorlage ihn nicht selbst per {zahllink} enthält.
+        if ($payUrl !== '' && strpos($body, $payUrl) === false) {
+            $body .= "\n\nBequem online bezahlen:\n" . $payUrl;
+        }
 
         try {
             Mailer::send($settings, $email, (string) $anrede, $subject, $body, [

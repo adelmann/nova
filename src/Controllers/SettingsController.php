@@ -199,6 +199,33 @@ final class SettingsController extends Controller
         $this->save($repo, $before, $data, '/einstellungen/datensicherung');
     }
 
+    // ---- Online-Zahlung ----------------------------------------------------
+    public function payments(Request $request): void
+    {
+        $this->section('settings/payment', 'Einstellungen · Online-Zahlung');
+    }
+
+    public function savePayments(Request $request): void
+    {
+        $this->verifyCsrf($request);
+        $repo   = new CompanySettingsRepository();
+        $before = $repo->get();
+
+        $mode = $request->str('paypal_mode', 'sandbox');
+        $data = [
+            'paypal_client_id'     => $request->str('paypal_client_id'),
+            'paypal_mode'          => in_array($mode, ['sandbox', 'live'], true) ? $mode : 'sandbox',
+            'payment_fee_category' => $request->str('payment_fee_category', 'Bankgebühren') ?: 'Bankgebühren',
+        ];
+        // Geheimnisse nur bei Neueingabe überschreiben (sonst leert leer den Wert).
+        foreach (['stripe_secret_key', 'stripe_webhook_secret', 'paypal_secret'] as $secret) {
+            if ($request->str($secret) !== '') {
+                $data[$secret] = $request->str($secret);
+            }
+        }
+        $this->save($repo, $before, $data, '/einstellungen/zahlung');
+    }
+
     // ---- System (Updates) --------------------------------------------------
     public function system(Request $request): void
     {

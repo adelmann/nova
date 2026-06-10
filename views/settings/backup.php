@@ -7,9 +7,9 @@ $fmtSize = static fn (int $b): string => $b >= 1048576 ? round($b / 1048576, 1) 
 $appUrl = rtrim((string) ($GLOBALS['nova_config']['app_url'] ?? ''), '/');
 if ($appUrl === '') {
     // Aktuelle Domain aus dem Request ableiten.
-    $scheme   = (($_SERVER['HTTPS'] ?? '') !== '' && ($_SERVER['HTTPS'] ?? '') !== 'off') ? 'https' : 'http';
-    $host     = (string) ($_SERVER['HTTP_HOST'] ?? '');
-    $cronBase = $host !== '' ? $scheme . '://' . $host : 'https://IHRE-DOMAIN';
+    $scheme   = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['SERVER_PORT'] ?? '') === '443') ? 'https' : 'http';
+    $host     = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $cronBase = $scheme . '://' . $host;
 } else {
     $cronBase = $appUrl;
 }

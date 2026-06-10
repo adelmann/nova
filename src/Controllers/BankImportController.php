@@ -81,7 +81,14 @@ final class BankImportController extends Controller
         foreach ($rows as &$row) {
             $row['match_id']    = 0;
             $row['match_label'] = '';
+            $row['transit']     = false;
             if ($row['amount'] <= 0) {
+                continue;
+            }
+            // Auszahlungen der Zahlungsanbieter sind Geldtransit (Brutto + Gebühr
+            // wurden bereits bei der Online-Zahlung gebucht) – nicht erneut verbuchen.
+            if (preg_match('/stripe|paypal/i', $row['purpose']) === 1) {
+                $row['transit'] = true;
                 continue;
             }
             $match = self::matchInvoice($row, $open);

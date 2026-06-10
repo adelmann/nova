@@ -18,6 +18,7 @@ use Nova\Controllers\IncomeController;
 use Nova\Controllers\InvoiceController;
 use Nova\Controllers\LedgerController;
 use Nova\Controllers\PasswordResetController;
+use Nova\Controllers\PaymentController;
 use Nova\Controllers\ProjectController;
 use Nova\Controllers\QuoteController;
 use Nova\Controllers\ReceiptController;
@@ -62,6 +63,12 @@ return static function (Router $r): void {
     $r->get('/setup', [SetupController::class, 'index'], auth: false);
     $r->post('/setup', [SetupController::class, 'store'], auth: false);
 
+    // Öffentliche Bezahlseite (Token) + Anbieter-Webhooks.
+    $r->get('/zahlen/{token}', [PaymentController::class, 'pay'], auth: false);
+    $r->post('/zahlen/{token}/start', [PaymentController::class, 'start'], auth: false);
+    $r->get('/zahlen/{token}/erfolg', [PaymentController::class, 'success'], auth: false);
+    $r->post('/webhook/stripe', [PaymentController::class, 'webhookStripe'], auth: false);
+
     // Dashboard.
     $r->get('/', [DashboardController::class, 'index'], cap: 'view_accounting');
 
@@ -77,6 +84,8 @@ return static function (Router $r): void {
     $r->post('/einstellungen/datensicherung/jetzt', [SettingsController::class, 'runBackup'], cap: 'manage_settings');
     $r->get('/einstellungen/datensicherung/download', [SettingsController::class, 'downloadBackup'], cap: 'manage_settings');
     $r->post('/einstellungen/datensicherung/loeschen', [SettingsController::class, 'deleteBackup'], cap: 'manage_settings');
+    $r->get('/einstellungen/zahlung', [SettingsController::class, 'payments'], cap: 'manage_settings');
+    $r->post('/einstellungen/zahlung', [SettingsController::class, 'savePayments'], cap: 'manage_settings');
     $r->get('/einstellungen/system', [SettingsController::class, 'system'], cap: 'manage_settings');
     $r->post('/einstellungen/update-pruefen', [UpdateController::class, 'checkNow'], cap: 'manage_settings');
     $r->post('/einstellungen/update-installieren', [UpdateController::class, 'install'], cap: 'manage_settings');

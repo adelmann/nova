@@ -228,6 +228,30 @@ final class InvoiceRepository extends BaseRepository
      *
      * @return array<int,array{id:int,number:string,open_cents:int}>
      */
+    /** Stellt sicher, dass die Rechnung einen öffentlichen Bezahl-Token hat. */
+    public function ensurePayToken(int $id): string
+    {
+        $inv = $this->find($id);
+        $token = (string) ($inv['pay_token'] ?? '');
+        if ($token === '') {
+            $token = bin2hex(random_bytes(16));
+            $this->updateById($id, ['pay_token' => $token]);
+        }
+        return $token;
+    }
+
+    /** @return array<string,mixed>|null */
+    public function findByPayToken(string $token): ?array
+    {
+        if ($token === '') {
+            return null;
+        }
+        return $this->db()->fetch(
+            'SELECT i.*, c.company_name, c.contact_name FROM invoice i JOIN customer c ON c.id = i.customer_id WHERE i.pay_token = :t',
+            ['t' => $token]
+        );
+    }
+
     public function openForMatching(): array
     {
         $rows = $this->db()->fetchAll(

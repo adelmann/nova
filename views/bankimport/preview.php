@@ -31,6 +31,8 @@
                                 Als Ausgabe buchen
                             <?php elseif ($hasMatch): ?>
                                 Zahlung → <strong><?= e($r['match_label']) ?></strong>
+                            <?php elseif (!empty($r['transit'])): ?>
+                                <span class="muted">Geldtransit (Anbieter-Auszahlung) – ignoriert</span>
                             <?php else: ?>
                                 <span class="muted">Eingang – keine passende Rechnung</span>
                             <?php endif; ?>

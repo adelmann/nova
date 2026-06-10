@@ -5,6 +5,7 @@ $tabs = [
     'company'   => ['/einstellungen', 'Unternehmen'],
     'invoicing' => ['/einstellungen/rechnungen', 'Rechnungen & Steuer'],
     'email'     => ['/einstellungen/email', 'E-Mail'],
+    'payments'  => ['/einstellungen/zahlung', 'Online-Zahlung'],
     'backup'    => ['/einstellungen/datensicherung', 'Datensicherung'],
     'system'    => ['/einstellungen/system', 'System'],
 ];

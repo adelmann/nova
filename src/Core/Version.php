@@ -10,5 +10,5 @@ namespace Nova\Core;
  */
 final class Version
 {
-    public const CURRENT = '0.9.6';
+    public const CURRENT = '0.9.7';
 }

@@ -8,8 +8,7 @@ final class PaymentRepository extends BaseRepository
 {
     protected string $table = 'payment';
 
-    /** @param array<string,mixed> $data */
-    public function createPayment(int $invoiceId, string $paidOn, int $amountCents, string $method, string $note): int
+    public function createPayment(int $invoiceId, string $paidOn, int $amountCents, string $method, string $note, string $externalRef = ''): int
     {
         return $this->insert([
             'invoice_id'   => $invoiceId,
@@ -17,6 +16,19 @@ final class PaymentRepository extends BaseRepository
             'amount_cents' => $amountCents,
             'method'       => $method,
             'note'         => $note,
+            'external_ref' => $externalRef,
         ]);
+    }
+
+    /** Wurde eine Zahlung mit dieser externen Referenz schon verbucht? (Idempotenz) */
+    public function existsExternalRef(string $ref): bool
+    {
+        if ($ref === '') {
+            return false;
+        }
+        return (int) $this->db()->fetchColumn(
+            'SELECT COUNT(*) FROM payment WHERE external_ref = :r',
+            ['r' => $ref]
+        ) > 0;
     }
 }
