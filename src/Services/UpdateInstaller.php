@@ -95,7 +95,9 @@ final class UpdateInstaller
             CURLOPT_FILE           => $fh,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_TIMEOUT        => 120,
-            CURLOPT_HTTPHEADER     => ['User-Agent: Nova-Updater', 'Accept: application/octet-stream'],
+            // Kein 'application/octet-stream' – GitHubs Zipball-Endpoint lehnt das
+            // mit HTTP 415 ab. '*/*' funktioniert für Zipball und Release-Assets.
+            CURLOPT_HTTPHEADER     => ['User-Agent: Nova-Updater', 'Accept: */*'],
         ]);
         $ok     = curl_exec($ch);
         $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
