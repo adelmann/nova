@@ -81,8 +81,15 @@ $open   = (int) $inv['gross_total_cents'] - (int) $inv['paid_total_cents'];
         </table>
     </div>
 
-    <div style="margin-top:14px; margin-left:auto; max-width:300px;">
-        <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Netto</span><span><?= money((int) $inv['net_total_cents']) ?></span></div>
+    <?php $discount = (int) ($inv['discount_cents'] ?? 0); ?>
+    <div style="margin-top:14px; margin-left:auto; max-width:320px;">
+        <?php if ($discount > 0): ?>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Zwischensumme</span><span><?= money((int) $inv['net_total_cents']) ?></span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--success);"><span>Rabatt<?= (string) ($inv['discount_type'] ?? '') === 'percent' ? ' (' . rtrim(rtrim(number_format((int) $inv['discount_value'] / 100, 2, ',', ''), '0'), ',') . ' %)' : '' ?></span><span>−<?= money($discount) ?></span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Netto</span><span><?= money((int) $inv['net_total_cents'] - $discount) ?></span></div>
+        <?php else: ?>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>Netto</span><span><?= money((int) $inv['net_total_cents']) ?></span></div>
+        <?php endif; ?>
         <?php if ((int) $inv['is_kleinunternehmer'] !== 1): ?>
             <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>USt <?= (int) $inv['vat_rate'] ?> %</span><span><?= money((int) $inv['vat_total_cents']) ?></span></div>
         <?php endif; ?>
@@ -94,6 +101,10 @@ $open   = (int) $inv['gross_total_cents'] - (int) $inv['paid_total_cents'];
     </div>
     <?php if ((int) $inv['is_kleinunternehmer'] === 1): ?>
         <p class="help">Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.</p>
+    <?php endif; ?>
+    <?php if ((int) ($inv['skonto_percent_bp'] ?? 0) > 0 && (int) ($inv['skonto_days'] ?? 0) > 0): ?>
+        <?php $skontoAmt = (int) round((int) $inv['gross_total_cents'] * (int) $inv['skonto_percent_bp'] / 10000); ?>
+        <p class="help">Skonto: Bei Zahlung innerhalb von <?= (int) $inv['skonto_days'] ?> Tagen <?= rtrim(rtrim(number_format((int) $inv['skonto_percent_bp'] / 100, 2, ',', ''), '0'), ',') ?> % (<?= money($skontoAmt) ?>), zahlbar <?= money((int) $inv['gross_total_cents'] - $skontoAmt) ?>.</p>
     <?php endif; ?>
 </div>
 
@@ -140,6 +151,11 @@ $open   = (int) $inv['gross_total_cents'] - (int) $inv['paid_total_cents'];
                 <label for="note">Notiz</label>
                 <input type="text" id="note" name="note">
             </div>
+            <?php if ((int) ($inv['skonto_percent_bp'] ?? 0) > 0): ?>
+                <div class="field full">
+                    <label class="check"><input type="checkbox" name="skonto" value="1"> Restbetrag als Skonto ausgleichen (<?= rtrim(rtrim(number_format((int) $inv['skonto_percent_bp'] / 100, 2, ',', ''), '0'), ',') ?> %, sofern Zahlung innerhalb <?= (int) $inv['skonto_days'] ?> Tagen)</label>
+                </div>
+            <?php endif; ?>
         </div>
         <div class="form-actions">
             <button type="submit" class="btn">Zahlung erfassen</button>

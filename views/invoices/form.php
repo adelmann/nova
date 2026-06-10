@@ -54,6 +54,25 @@ $inv = $invoice;
         <h2 style="margin-top:18px;font-size:15px;">Positionen</h2>
         <?= partial('partials/line_items', ['items' => $items]) ?>
 
+        <?php
+        $dtype = (string) ($inv['discount_type'] ?? 'none');
+        $dval  = $dtype === 'percent' ? rtrim(rtrim(number_format((int) ($inv['discount_value'] ?? 0) / 100, 2, ',', ''), '0'), ',') : amount((int) ($inv['discount_value'] ?? 0));
+        ?>
+        <div class="form-grid" style="margin-top:14px;">
+            <div class="field">
+                <label for="discount_type">Rabatt</label>
+                <select id="discount_type" name="discount_type">
+                    <option value="none" <?= $dtype === 'none' ? 'selected' : '' ?>>kein Rabatt</option>
+                    <option value="percent" <?= $dtype === 'percent' ? 'selected' : '' ?>>Prozent (%)</option>
+                    <option value="amount" <?= $dtype === 'amount' ? 'selected' : '' ?>>Fester Betrag (€)</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="discount_value">Rabattwert</label>
+                <input type="text" id="discount_value" name="discount_value" value="<?= e($dtype === 'none' ? '' : $dval) ?>" inputmode="decimal" placeholder="z.B. 10 (%) oder 50,00 (€)">
+            </div>
+        </div>
+
         <div class="field full" style="margin-top:14px;">
             <label for="footer_text">Fußtext</label>
             <textarea id="footer_text" name="footer_text"><?= e($inv['footer_text']) ?></textarea>

@@ -7,8 +7,9 @@
 use Nova\Controllers\ReminderController;
 $inv = $invoice;
 $s = $settings;
+$interestCents = $interestCents ?? 0;
 $label = ReminderController::levelLabel($level);
-$total = $offen + $feeCents;
+$total = $offen + $feeCents + $interestCents;
 ?>
 <!DOCTYPE html>
 <html lang="de"><head><meta charset="UTF-8">
@@ -53,6 +54,7 @@ $total = $offen + $feeCents;
     <table class="sum">
         <tr><td>Offener Rechnungsbetrag</td><td class="num" style="text-align:right"><?= money($offen) ?></td></tr>
         <?php if ($feeCents > 0): ?><tr><td>Mahngebühr</td><td class="num" style="text-align:right"><?= money($feeCents) ?></td></tr><?php endif; ?>
+        <?php if ($interestCents > 0): ?><tr><td>Verzugszinsen</td><td class="num" style="text-align:right"><?= money($interestCents) ?></td></tr><?php endif; ?>
         <tr class="grand"><td>Zu zahlen</td><td class="num" style="text-align:right"><?= money($total) ?></td></tr>
     </table>
 

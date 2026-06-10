@@ -316,9 +316,28 @@ final class InvoiceController extends Controller
         );
 
         $this->repo->recalcPaymentStatus($id);
-        AuditService::record('payment', 'invoice', $id, null, ['amount_cents' => $amount, 'paid_on' => $paidOn]);
 
-        Session::flash('success', 'Zahlung erfasst.');
+        // Skonto-Ausgleich: verbleibender Restbetrag wird als gewährter Skonto
+        // ausgebucht, sofern er den Skontorahmen der Rechnung nicht übersteigt.
+        // Der Skonto erzeugt KEINE Einnahme – die EÜR zeigt damit nur den
+        // tatsächlichen Zahlungseingang (Erlösschmälerung implizit).
+        $skontoBooked = 0;
+        if ($request->bool('skonto') && (int) $invoice['skonto_percent_bp'] > 0) {
+            $fresh = $this->repo->find($id);
+            $open  = (int) $fresh['gross_total_cents'] - (int) $fresh['paid_total_cents'];
+            $maxSkonto = (int) round((int) $fresh['gross_total_cents'] * (int) $invoice['skonto_percent_bp'] / 10000);
+            if ($open > 0 && $open <= $maxSkonto) {
+                (new PaymentRepository())->createPayment($id, $paidOn, $open, 'Skonto', 'Skontoabzug ' . number_format((int) $invoice['skonto_percent_bp'] / 100, 2, ',', '') . ' %');
+                $this->repo->recalcPaymentStatus($id);
+                $skontoBooked = $open;
+            }
+        }
+
+        AuditService::record('payment', 'invoice', $id, null, ['amount_cents' => $amount, 'paid_on' => $paidOn, 'skonto_cents' => $skontoBooked]);
+
+        Session::flash('success', $skontoBooked > 0
+            ? 'Zahlung erfasst, Restbetrag als Skonto ausgeglichen (' . Format::money($skontoBooked) . ').'
+            : 'Zahlung erfasst.');
         $this->redirect('/rechnungen/' . $id);
     }
 
@@ -453,7 +472,19 @@ final class InvoiceController extends Controller
             $it['vat_rate'] = $vatRate;
         }
         unset($it);
-        $totals = LineItemService::totals($items, $vatRate, $isKU);
+
+        // Rabatt: Typ + Wert (Prozent als Basispunkte, sonst Cent).
+        $discountType = $request->str('discount_type', 'none');
+        if (!in_array($discountType, ['none', 'percent', 'amount'], true)) {
+            $discountType = 'none';
+        }
+        $discountValue = match ($discountType) {
+            'percent' => (int) round(((float) str_replace(',', '.', $request->str('discount_value'))) * 100), // % -> Basispunkte
+            'amount'  => Format::toCents($request->str('discount_value')),
+            default   => 0,
+        };
+
+        $totals = LineItemService::totals($items, $vatRate, $isKU, $discountType, $discountValue);
 
         $header = [
             'customer_id'         => $request->int('customer_id'),
@@ -467,8 +498,13 @@ final class InvoiceController extends Controller
             'intro_text'          => $request->str('intro_text'),
             'footer_text'         => $request->str('footer_text') ?: $settings['invoice_footer_text'],
             'net_total_cents'     => $totals['net_total_cents'],
+            'discount_type'       => $discountType,
+            'discount_value'      => $discountValue,
+            'discount_cents'      => $totals['discount_cents'],
             'vat_total_cents'     => $totals['vat_total_cents'],
             'gross_total_cents'   => $totals['gross_total_cents'],
+            'skonto_percent_bp'   => (int) $settings['skonto_percent_bp'],
+            'skonto_days'         => (int) $settings['skonto_days'],
         ];
         return [$header, $items];
     }
@@ -484,6 +520,8 @@ final class InvoiceController extends Controller
             'vat_rate' => (int) $settings['default_vat_rate'],
             'intro_text' => '', 'footer_text' => $settings['invoice_footer_text'],
             'net_total_cents' => 0, 'vat_total_cents' => 0, 'gross_total_cents' => 0, 'paid_total_cents' => 0,
+            'discount_type' => 'none', 'discount_value' => 0, 'discount_cents' => 0,
+            'skonto_percent_bp' => (int) ($settings['skonto_percent_bp'] ?? 0), 'skonto_days' => (int) ($settings['skonto_days'] ?? 0),
         ];
     }
 }

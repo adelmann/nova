@@ -72,29 +72,42 @@ final class ReminderController extends Controller
         }
 
         $level    = $this->repo->highestLevel($invoiceId) + 1;
-        $feeCents  = Format::toCents($request->str('fee'));
         $settings  = (new CompanySettingsRepository())->get();
         $offen     = (int) $invoice['gross_total_cents'] - (int) $invoice['paid_total_cents'];
 
-        $emailText = $this->buildEmailText($invoice, $level, $offen, $feeCents, $settings);
+        // Mahngebühr: aus Eingabe, sonst Standard ab Mahnstufe (Level >= 2).
+        $feeInput = trim($request->str('fee'));
+        $feeCents = $feeInput !== ''
+            ? Format::toCents($feeInput)
+            : ($level >= 2 ? (int) ($settings['dunning_fee_cents'] ?? 0) : 0);
+
+        // Verzugszinsen: aus Eingabe, sonst aus Zinssatz × Tage überfällig.
+        $interestInput = trim($request->str('interest'));
+        $interestCents = $interestInput !== ''
+            ? Format::toCents($interestInput)
+            : self::computeInterest($offen, (int) ($settings['interest_rate_bp'] ?? 0), (string) $invoice['due_date']);
+
+        $emailText = $this->buildEmailText($invoice, $level, $offen, $feeCents, $interestCents, $settings);
 
         $id = $this->repo->createReminder([
-            'invoice_id'    => $invoiceId,
-            'level'         => $level,
-            'reminder_date' => date('Y-m-d'),
-            'fee_cents'     => $feeCents,
-            'email_text'    => $emailText,
+            'invoice_id'     => $invoiceId,
+            'level'          => $level,
+            'reminder_date'  => date('Y-m-d'),
+            'fee_cents'      => $feeCents,
+            'interest_cents' => $interestCents,
+            'email_text'     => $emailText,
         ]);
 
         // PDF erzeugen und archivieren.
         $relPath = date('Y') . '/Mahnung-' . str_replace(['/', ' '], '-', (string) $invoice['number']) . '-Stufe' . $level . '.pdf';
         $absPath = ($GLOBALS['nova_config']['paths']['invoices'] ?? '') . '/' . $relPath;
         PdfService::renderToFile('pdf/reminder', [
-            'invoice'  => $invoice,
-            'level'    => $level,
-            'offen'    => $offen,
-            'feeCents' => $feeCents,
-            'settings' => $settings,
+            'invoice'      => $invoice,
+            'level'        => $level,
+            'offen'        => $offen,
+            'feeCents'     => $feeCents,
+            'interestCents' => $interestCents,
+            'settings'     => $settings,
         ], $absPath);
         $this->repo->setPdfPath($id, $relPath);
 
@@ -177,12 +190,32 @@ final class ReminderController extends Controller
         $this->redirect('/mahnungen');
     }
 
+    /**
+     * Verzugszinsen (Cent) = offen × Zinssatz (p.a.) × Tage überfällig / 365.
+     * Gibt 0 zurück, wenn kein Zinssatz gesetzt oder die Rechnung nicht fällig ist.
+     */
+    public static function computeInterest(int $offenCents, int $rateBp, string $dueDate): int
+    {
+        if ($rateBp <= 0 || $offenCents <= 0 || $dueDate === '') {
+            return 0;
+        }
+        $days = (int) floor((strtotime(date('Y-m-d')) - strtotime($dueDate)) / 86400);
+        if ($days <= 0) {
+            return 0;
+        }
+        return (int) round($offenCents * ($rateBp / 10000) * ($days / 365));
+    }
+
     /** @param array<string,mixed> $invoice @param array<string,mixed> $settings */
-    private function buildEmailText(array $invoice, int $level, int $offen, int $feeCents, array $settings): string
+    private function buildEmailText(array $invoice, int $level, int $offen, int $feeCents, int $interestCents, array $settings): string
     {
         $anrede = $invoice['contact_name'] ?: $invoice['company_name'];
         $label  = self::levelLabel($level);
-        $betrag = Format::money($offen + $feeCents);
+        $gesamt = $offen + $feeCents + $interestCents;
+        $zusatz = [];
+        if ($feeCents > 0)      { $zusatz[] = 'Mahngebühr ' . Format::money($feeCents); }
+        if ($interestCents > 0) { $zusatz[] = 'Verzugszinsen ' . Format::money($interestCents); }
+        $zusatzText = $zusatz !== [] ? ' zzgl. ' . implode(' und ', $zusatz) . ' (gesamt ' . Format::money($gesamt) . ')' : '';
         $lines  = [
             "Betreff: {$label} zu Rechnung {$invoice['number']}",
             '',
@@ -193,7 +226,7 @@ final class ReminderController extends Controller
                 : "trotz unserer bisherigen Erinnerung ist die Rechnung {$invoice['number']} weiterhin offen.",
             '',
             "Bitte überweisen Sie den offenen Betrag von " . Format::money($offen)
-                . ($feeCents > 0 ? " zzgl. Mahngebühr von " . Format::money($feeCents) . " (gesamt {$betrag})" : '')
+                . $zusatzText
                 . " bis zum " . date('d.m.Y', strtotime('+7 days')) . " auf das Konto {$settings['iban']}.",
             '',
             'Sollte sich Ihre Zahlung mit diesem Schreiben überschnitten haben, betrachten Sie es bitte als gegenstandslos.',

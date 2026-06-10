@@ -60,6 +60,36 @@ $pmValue = trim((string) ($s['payment_methods'] ?? '')) !== ''
             </div>
         </div>
     </div>
+
+    <?php
+    $dunningFee = isset($s['dunning_fee_cents']) ? amount((int) $s['dunning_fee_cents']) : '0,00';
+    $interestRate = rtrim(rtrim(number_format((int) ($s['interest_rate_bp'] ?? 0) / 100, 2, ',', ''), '0'), ',');
+    $skontoPct = rtrim(rtrim(number_format((int) ($s['skonto_percent_bp'] ?? 0) / 100, 2, ',', ''), '0'), ',');
+    ?>
+    <div class="panel">
+        <h2>Mahnwesen &amp; Skonto</h2>
+        <div class="form-grid">
+            <div class="field">
+                <label for="dunning_fee">Standard-Mahngebühr (€, ab Stufe 2)</label>
+                <input type="text" id="dunning_fee" name="dunning_fee" value="<?= e($dunningFee) ?>" inputmode="decimal">
+            </div>
+            <div class="field">
+                <label for="interest_rate">Verzugszinssatz (% p.&nbsp;a., 0 = aus)</label>
+                <input type="text" id="interest_rate" name="interest_rate" value="<?= e($interestRate) ?>" inputmode="decimal">
+                <span class="help">Gesetzlicher Verzugszins: 5 % über Basiszinssatz (Verbraucher), 9 % (Geschäftskunden).</span>
+            </div>
+            <div class="field">
+                <label for="skonto_percent">Skonto (%, 0 = aus)</label>
+                <input type="text" id="skonto_percent" name="skonto_percent" value="<?= e($skontoPct) ?>" inputmode="decimal">
+            </div>
+            <div class="field">
+                <label for="skonto_days">Skontofrist (Tage)</label>
+                <input type="number" id="skonto_days" name="skonto_days" value="<?= e((string) ($s['skonto_days'] ?? 0)) ?>" min="0" max="90">
+            </div>
+        </div>
+        <span class="help">Skonto-Konditionen werden auf neuen Rechnungen ausgewiesen; beim Zahlungseingang lässt sich der Restbetrag als Skonto ausgleichen.</span>
+    </div>
+
     <div class="form-actions">
         <button type="submit" class="btn">Speichern</button>
     </div>

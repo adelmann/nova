@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Nova\Controllers;
 
 use Nova\Core\Controller;
+use Nova\Core\Format;
 use Nova\Core\Request;
 use Nova\Core\Session;
 use Nova\Models\CompanySettingsRepository;
@@ -88,6 +89,10 @@ final class SettingsController extends Controller
             'quote_footer_text'     => $request->str('quote_footer_text'),
             'payment_methods'       => $this->normalizeLines($request->str('payment_methods')),
             'auto_reminder_days'    => max(0, $request->int('auto_reminder_days', 0)),
+            'dunning_fee_cents'     => Format::toCents($request->str('dunning_fee')),
+            'interest_rate_bp'      => max(0, (int) round(((float) str_replace(',', '.', $request->str('interest_rate'))) * 100)),
+            'skonto_percent_bp'     => max(0, (int) round(((float) str_replace(',', '.', $request->str('skonto_percent'))) * 100)),
+            'skonto_days'           => max(0, $request->int('skonto_days', 0)),
         ], '/einstellungen/rechnungen');
     }
 

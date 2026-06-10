@@ -50,21 +50,43 @@ final class LineItemService
     /**
      * Berechnet Netto/USt/Brutto aus Positionen.
      *
+     * net_total_cents bleibt die Positionssumme (vor Rabatt); discount_cents ist
+     * der Nachlass; USt/Brutto werden auf die Bemessungsgrundlage nach Rabatt
+     * gerechnet (so bleibt die XRechnung über eine AllowanceCharge konsistent).
+     *
      * @param array<int,array<string,mixed>> $items
-     * @return array{net_total_cents:int,vat_total_cents:int,gross_total_cents:int}
+     * @return array{net_total_cents:int,discount_cents:int,vat_total_cents:int,gross_total_cents:int}
      */
-    public static function totals(array $items, int $vatRate, bool $isKleinunternehmer): array
+    public static function totals(array $items, int $vatRate, bool $isKleinunternehmer, string $discountType = 'none', int $discountValue = 0): array
     {
         $net = 0;
         foreach ($items as $item) {
             $net += (int) $item['line_total_cents'];
         }
-        $vat   = $isKleinunternehmer ? 0 : (int) round($net * $vatRate / 100);
+        $discount = self::discountCents($net, $discountType, $discountValue);
+        $base     = $net - $discount;
+        $vat      = $isKleinunternehmer ? 0 : (int) round($base * $vatRate / 100);
         return [
             'net_total_cents'   => $net,
+            'discount_cents'    => $discount,
             'vat_total_cents'   => $vat,
-            'gross_total_cents' => $net + $vat,
+            'gross_total_cents' => $base + $vat,
         ];
+    }
+
+    /**
+     * Rabattbetrag (Cent) aus Positionssumme. percent: Wert in Basispunkten
+     * (1000 = 10 %), amount: Wert in Cent. Nie größer als die Summe selbst.
+     */
+    public static function discountCents(int $netCents, string $type, int $value): int
+    {
+        $value = max(0, $value);
+        $d = match ($type) {
+            'percent' => (int) round($netCents * $value / 10000),
+            'amount'  => $value,
+            default   => 0,
+        };
+        return max(0, min($netCents, $d));
     }
 
     private static function toFloat(string $value): float

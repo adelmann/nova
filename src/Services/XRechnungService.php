@@ -24,7 +24,11 @@ final class XRechnungService
         $isKU       = (int) $invoice['is_kleinunternehmer'] === 1;
         $vatRate    = (int) $invoice['vat_rate'];
         $taxCat     = $isKU ? 'E' : 'S'; // E = steuerbefreit, S = Standardsatz
-        $net        = self::amt((int) $invoice['net_total_cents']);
+        $discountCents = (int) ($invoice['discount_cents'] ?? 0);
+        $baseCents     = (int) $invoice['net_total_cents'] - $discountCents; // Bemessungsgrundlage nach Rabatt
+        $net        = self::amt((int) $invoice['net_total_cents']);        // Summe der Positionen (LineExtension)
+        $base       = self::amt($baseCents);                                // steuerpflichtiger Nettobetrag
+        $discount   = self::amt($discountCents);
         $vat        = self::amt((int) $invoice['vat_total_cents']);
         $gross      = self::amt((int) $invoice['gross_total_cents']);
         $dueDate    = $invoice['due_date'] ?: $invoice['invoice_date'];
@@ -93,11 +97,27 @@ final class XRechnungService
             $x->endElement();
         }
 
+        // Dokument-Rabatt (BG-20) als AllowanceCharge – muss vor TaxTotal stehen.
+        if ($discountCents > 0) {
+            $x->startElement('cac:AllowanceCharge');
+            $x->writeElement('cbc:ChargeIndicator', 'false');
+            $x->writeElement('cbc:AllowanceChargeReason', 'Rabatt');
+            self::amountEl($x, 'cbc:Amount', $discount);
+            $x->startElement('cac:TaxCategory');
+            $x->writeElement('cbc:ID', $taxCat);
+            $x->writeElement('cbc:Percent', $isKU ? '0' : (string) $vatRate);
+            $x->startElement('cac:TaxScheme');
+            $x->writeElement('cbc:ID', 'VAT');
+            $x->endElement();
+            $x->endElement(); // TaxCategory
+            $x->endElement(); // AllowanceCharge
+        }
+
         // Steueraufschlüsselung
         $x->startElement('cac:TaxTotal');
         self::amountEl($x, 'cbc:TaxAmount', $vat);
         $x->startElement('cac:TaxSubtotal');
-        self::amountEl($x, 'cbc:TaxableAmount', $net);
+        self::amountEl($x, 'cbc:TaxableAmount', $base);
         self::amountEl($x, 'cbc:TaxAmount', $vat);
         $x->startElement('cac:TaxCategory');
         $x->writeElement('cbc:ID', $taxCat);
@@ -116,8 +136,11 @@ final class XRechnungService
         // Summen
         $x->startElement('cac:LegalMonetaryTotal');
         self::amountEl($x, 'cbc:LineExtensionAmount', $net);
-        self::amountEl($x, 'cbc:TaxExclusiveAmount', $net);
+        self::amountEl($x, 'cbc:TaxExclusiveAmount', $base);
         self::amountEl($x, 'cbc:TaxInclusiveAmount', $gross);
+        if ($discountCents > 0) {
+            self::amountEl($x, 'cbc:AllowanceTotalAmount', $discount);
+        }
         self::amountEl($x, 'cbc:PayableAmount', $gross);
         $x->endElement();
 

@@ -89,8 +89,15 @@ $isKU = (int) $inv['is_kleinunternehmer'] === 1;
         </tbody>
     </table>
 
+    <?php $discount = (int) ($inv['discount_cents'] ?? 0); ?>
     <table class="totals">
-        <tr><td>Netto</td><td class="num"><?= money((int) $inv['net_total_cents']) ?></td></tr>
+        <?php if ($discount > 0): ?>
+            <tr><td>Zwischensumme</td><td class="num"><?= money((int) $inv['net_total_cents']) ?></td></tr>
+            <tr><td>Rabatt<?= (string) ($inv['discount_type'] ?? '') === 'percent' ? ' (' . rtrim(rtrim(number_format((int) $inv['discount_value'] / 100, 2, ',', ''), '0'), ',') . ' %)' : '' ?></td><td class="num">−<?= money($discount) ?></td></tr>
+            <tr><td>Netto</td><td class="num"><?= money((int) $inv['net_total_cents'] - $discount) ?></td></tr>
+        <?php else: ?>
+            <tr><td>Netto</td><td class="num"><?= money((int) $inv['net_total_cents']) ?></td></tr>
+        <?php endif; ?>
         <?php if (!$isKU): ?>
             <tr><td>USt <?= (int) $inv['vat_rate'] ?> %</td><td class="num"><?= money((int) $inv['vat_total_cents']) ?></td></tr>
         <?php endif; ?>
@@ -105,6 +112,10 @@ $isKU = (int) $inv['is_kleinunternehmer'] === 1;
         <p class="pay">Bitte überweisen Sie den Gesamtbetrag<?php if ($inv['due_date']): ?> bis zum <?= dt($inv['due_date']) ?><?php endif; ?>
         <?php if ($inv['iban'] ?? $s['iban']): ?> auf das Konto <?= e($s['iban']) ?> (<?= e($s['bank_name']) ?>)<?php endif; ?>
         unter Angabe der Rechnungsnummer <?= e($inv['number']) ?>.</p>
+        <?php if ((int) ($inv['skonto_percent_bp'] ?? 0) > 0 && (int) ($inv['skonto_days'] ?? 0) > 0): ?>
+            <?php $skontoAmt = (int) round((int) $inv['gross_total_cents'] * (int) $inv['skonto_percent_bp'] / 10000); ?>
+            <p class="pay">Bei Zahlung innerhalb von <?= (int) $inv['skonto_days'] ?> Tagen gewähren wir <?= rtrim(rtrim(number_format((int) $inv['skonto_percent_bp'] / 100, 2, ',', ''), '0'), ',') ?> % Skonto (<?= money($skontoAmt) ?>); zahlbar dann <?= money((int) $inv['gross_total_cents'] - $skontoAmt) ?>.</p>
+        <?php endif; ?>
     <?php endif; ?>
 
     <?php if ($inv['footer_text']): ?><p class="note"><?= nl2br(e($inv['footer_text'])) ?></p><?php endif; ?>
