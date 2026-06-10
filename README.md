@@ -1,4 +1,4 @@
-# Nova <small>v0.9.2</small>
+# Nova <small>v0.9.18</small>
 
 Webbasiertes Business- & Buchhaltungstool für ein deutsches Kleingewerbe –
 Kunden, Angebote, Rechnungen, Ausgaben, Belege und Einnahmen‑Überschuss‑Rechnung
@@ -8,24 +8,42 @@ einfachem Shared Hosting. Optional als **PWA** auf dem Handy installierbar.
 > Nova ersetzt keine Steuerberatung. Nutzung auf eigenes Risiko, ohne
 > Gewährleistung (siehe [LICENSE](LICENSE) und Haftungsausschluss im Setup).
 
+Projektseite & Anleitung: **https://adelmann.github.io/nova/**
+
 ## Funktionsumfang
 
 - **Stammdaten:** Kunden, Projekte (mit abrechenbaren Leistungen), Lieferanten &
-  Dienstleister – jeweils mit Archivierung.
+  Dienstleister, Leistungskatalog – jeweils mit Archivierung.
 - **Verkauf:** Angebote → per Klick in Rechnung umwandeln; Rechnungen mit
   lückenlosen Nummern, Finalisierung/Sperre (GoBD), Storno, Zahlungserfassung,
-  Mahnwesen (mehrstufig, PDF + E‑Mail).
+  Mahnwesen (mehrstufig, PDF + E‑Mail). **Abschlags‑ und Schlussrechnungen**
+  (Schlussrechnung verrechnet geleistete Abschläge), **Rabatt** (Prozent/Betrag)
+  und **Skonto**‑Konditionen, **wiederkehrende Rechnungen**.
+- **Online‑Zahlung (optional):** Bezahllink per **Stripe** und **PayPal**; der
+  Bruttobetrag wird als Einnahme, die Anbietergebühr automatisch als Ausgabe
+  gebucht (EÜR), idempotent.
 - **Ausgaben & Belege:** Ausgaben mit EÜR‑Kategorie, Beleg‑Upload (Foto **oder
-  PDF**), Belege frei zuordnen oder direkt als Ausgabe verbuchen, CSV‑Bankimport.
+  PDF**), Belege frei zuordnen oder direkt verbuchen, **wiederkehrende Ausgaben**
+  (Daueraufwendungen). **CSV‑Bankimport** mit Format‑Vorlagen, speicherbaren
+  Mapping‑Profilen und automatischem Zahlungsabgleich.
+- **Anlagevermögen & AfA:** Anlagegüter mit linearer Abschreibung (pro rata
+  temporis) oder GWG‑Sofortabschreibung; jährliche AfA wird automatisch gebucht.
 - **Buchhaltung:** automatisches, unveränderbares Buchungsjournal, EÜR‑Auswertung
-  (Monat/Kategorie + Einzelaufstellung), CSV/PDF‑Export, Jahres‑ZIP.
-- **E‑Rechnung:** XRechnung‑3.0‑XML‑Export.
+  (Monat/Kategorie + Einzelaufstellung), CSV/PDF‑Export, **DATEV‑Buchungsstapel**,
+  Jahres‑ZIP. **Offene‑Posten‑Liste** mit Fälligkeits‑Aging und **Kunden‑Kontoauszug**.
+- **Mahnwesen:** mehrstufig mit konfigurierbarer **Mahngebühr** und
+  **Verzugszinsen**; optional automatische Zahlungserinnerungen.
+- **E‑Rechnung:** **XRechnung‑3.0‑XML** (UBL) und **ZUGFeRD / Factur‑X**
+  (EN 16931, CII‑XML eingebettet in PDF/A‑3).
+- **Dashboard:** Umsatz/Ausgaben/Gewinn, Liquiditätsvorschau, anteilige
+  Zahlungsmethoden, Top‑Kunden, Ausgaben nach Kategorie, ⌀ Zahldauer,
+  Kleinunternehmer‑Umsatzgrenze.
 - **PDF‑Erzeugung** für Angebote, Rechnungen, Mahnungen, EÜR – mit Logo & Briefkopf.
 - **E‑Mail‑Versand** (SMTP oder `mail()`), inkl. Signatur und Textvorlagen mit
   Platzhaltern.
 - **KI‑Assistent** (optional, Anthropic‑API).
 - **Mehrbenutzer & Rollen**, **2FA (TOTP)**, **Passwort‑Reset**, **Backups**
-  (verschlüsselt) und **Self‑Update** über GitHub – siehe unten.
+  (verschlüsselt, konfigurierbare Häufigkeit) und **Self‑Update** über GitHub.
 
 ## Anforderungen
 
@@ -81,7 +99,7 @@ php -S localhost:8000 -t public public/index.php
 | `bin/migrate.php` | Ausstehende DB‑Migrationen anwenden |
 | `bin/seed-admin.php` | Admin‑Benutzer anlegen |
 | `bin/backup.php` | Backup erstellen + verteilen (für CLI‑Cron) |
-| `bin/sweep.php` | Wartung: überfällige Rechnungen markieren, Update‑Check |
+| `bin/sweep.php` | Wartung: überfällige Rechnungen, wiederkehrende Rechnungen/Ausgaben, AfA‑Buchungen, Auto‑Mahnungen, Update‑Check |
 | `bin/reset-password.php` | Passwort eines Benutzers per CLI zurücksetzen (Notfall) |
 
 ## Benutzer & Rollen
@@ -109,9 +127,17 @@ Unter **Einstellungen → Datensicherung**:
   Serververzeichnis.
 - **Backups auflisten, herunterladen und löschen** direkt im Tool; „Backup jetzt
   erstellen" auf Knopfdruck. Es werden die letzten 14 aufbewahrt.
+- **Konfigurierbare Häufigkeit:** Mindestabstand zwischen Backups und ein
+  separates Intervall für den E‑Mail‑Versand – ein stündlicher Cron legt damit
+  z. B. nur ein Backup pro Tag an.
 - **Automatisch per Cron** – entweder CLI (`php bin/backup.php`) oder der
   **token‑geschützte Web‑Cron** (URL wird in den Einstellungen angezeigt), z. B.:
   `wget -qO- "https://deine-domain.de/cron/backup?token=…"`
+
+Für die übrigen Wartungsaufgaben (wiederkehrende Rechnungen/Ausgaben, AfA,
+Mahnungen, Überfälligkeit) gibt es analog `php bin/sweep.php` bzw. den Web‑Cron
+`…/cron/sweep?token=…`. Beide URLs samt fertiger Crontab‑Beispiele werden in
+**Einstellungen → Datensicherung** angezeigt. Alle Aufgaben sind idempotent.
 
 ## Updates
 

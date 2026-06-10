@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Features – Nova</title>
 <meta name="description" content="Alle Funktionen von Nova im Detail: Stammdaten, Verkauf, Ausgaben & Belege, Buchhaltung & EÜR, Online-Zahlung, E-Rechnung, Benutzer & Rollen, Backups und Updates.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
 <header class="site">
     <div class="wrap">
-        <a class="brand" href="index.html"><span class="logo">N</span> Nova</a>
+        <a class="brand" href="index.html"><img class="logo" src="assets/nova-icon.png" alt="Nova-Logo"> Nova</a>
         <button class="nav-toggle" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
         <nav class="main" id="nav">
             <a href="index.html">Start</a>
@@ -33,7 +34,8 @@
             <li><a href="#verkauf">Verkauf</a></li>
             <li><a href="#zahlung">Online-Zahlung</a></li>
             <li><a href="#ausgaben">Ausgaben &amp; Belege</a></li>
-            <li><a href="#buchhaltung">Buchhaltung &amp; EÜR</a></li>
+            <li><a href="#anlagen">Anlagevermögen &amp; AfA</a></li>
+            <li><a href="#buchhaltung">Buchhaltung, EÜR &amp; Auswertung</a></li>
             <li><a href="#erechnung">E-Rechnung &amp; PDF</a></li>
             <li><a href="#benutzer">Benutzer, Rollen &amp; 2FA</a></li>
             <li><a href="#backup">Backups &amp; Updates</a></li>
@@ -56,7 +58,9 @@
         <li><strong>Rechnungen</strong> mit lückenlosen, fortlaufenden Nummern.</li>
         <li><strong>Finalisierung &amp; Sperre (GoBD):</strong> Eine festgeschriebene Rechnung ist unveränderbar; Korrekturen erfolgen über <strong>Storno</strong>.</li>
         <li><strong>Zahlungserfassung</strong> (Teil- und Vollzahlungen) mit automatischem Status.</li>
-        <li><strong>Mehrstufiges Mahnwesen</strong> als PDF und E-Mail, mit optionalen automatischen Zahlungserinnerungen.</li>
+        <li><strong>Abschlags- und Schlussrechnungen:</strong> Anzahlungen anfordern; die Schlussrechnung verrechnet die bereits gestellten Abschläge automatisch.</li>
+        <li><strong>Rabatt</strong> (Prozent oder fester Betrag) und <strong>Skonto</strong>-Konditionen – inkl. korrekter Abbildung in der E-Rechnung.</li>
+        <li><strong>Mehrstufiges Mahnwesen</strong> als PDF und E-Mail mit konfigurierbarer <strong>Mahngebühr</strong> und <strong>Verzugszinsen</strong>; optional automatische Zahlungserinnerungen.</li>
         <li><strong>Wiederkehrende Rechnungen</strong> (z. B. monatliche Pauschalen) – automatisch als Entwurf erzeugt.</li>
         <li><strong>Kleinunternehmer-Regelung (§ 19 UStG)</strong> wird unterstützt; der Hinweis erscheint automatisch.</li>
     </ul>
@@ -74,20 +78,30 @@
     <ul>
         <li><strong>Ausgaben</strong> mit passender <strong>EÜR-Kategorie</strong>, Zahlart und Status.</li>
         <li><strong>Belege</strong> als Foto <em>oder</em> PDF hochladen, frei zuordnen oder direkt als Ausgabe verbuchen.</li>
-        <li><strong>CSV-Bankimport</strong>: Umsätze einlesen, Ausgaben übernehmen und Zahlungseingänge automatisch offenen Rechnungen zuordnen.</li>
+        <li><strong>Wiederkehrende Ausgaben</strong> (Miete, Abos, Versicherungen) werden automatisch zum Fälligkeitstag gebucht.</li>
+        <li><strong>CSV-Bankimport</strong> mit <strong>Format-Vorlagen</strong> (Sparkasse, DKB, PayPal, generisch) und <strong>speicherbaren Mapping-Profilen</strong>; Zahlungseingänge werden automatisch offenen Rechnungen zugeordnet, Anbieter-Auszahlungen als Geldtransit erkannt.</li>
     </ul>
 
-    <h2 id="buchhaltung">Buchhaltung &amp; EÜR</h2>
+    <h2 id="anlagen">Anlagevermögen &amp; AfA</h2>
+    <ul>
+        <li>Erfassung von <strong>Anlagegütern</strong> mit Anschaffungskosten und Nutzungsdauer.</li>
+        <li><strong>Lineare Abschreibung</strong> zeitanteilig (pro rata temporis) ab dem Kaufmonat oder <strong>GWG-Sofortabschreibung</strong> (bis 800 € netto).</li>
+        <li>Die jährliche <strong>AfA</strong> wird zum Jahresende automatisch ins Journal/EÜR gebucht; der AfA-Plan und Restbuchwert sind jederzeit einsehbar.</li>
+    </ul>
+
+    <h2 id="buchhaltung">Buchhaltung, EÜR &amp; Auswertung</h2>
     <ul>
         <li><strong>Automatisches, unveränderbares Buchungsjournal</strong> (Datenbank-Trigger verhindern nachträgliche Änderung/Löschung).</li>
         <li><strong>EÜR-Auswertung</strong> nach Monat und Kategorie inklusive Einzelaufstellung.</li>
+        <li><strong>Offene-Posten-Liste</strong> mit Fälligkeits-Aging und <strong>Kunden-Kontoauszug</strong> (laufender Saldo).</li>
+        <li><strong>Dashboard-Kennzahlen:</strong> Liquiditätsvorschau, anteilige Zahlungsmethoden, Top-Kunden, Ausgaben nach Kategorie, durchschnittliche Zahldauer.</li>
         <li><strong>Exporte:</strong> CSV und PDF, <strong>DATEV-Buchungsstapel</strong> sowie ein <strong>Jahres-ZIP</strong> mit allen Belegen.</li>
-        <li>Separate Ansichten für <strong>Einnahmen</strong> und <strong>Auswertungen</strong>.</li>
     </ul>
 
     <h2 id="erechnung">E-Rechnung &amp; PDF</h2>
     <ul>
-        <li><strong>XRechnung-3.0-XML-Export</strong> für elektronische Rechnungen.</li>
+        <li><strong>XRechnung-3.0-XML</strong> (UBL) für elektronische Rechnungen.</li>
+        <li><strong>ZUGFeRD / Factur-X</strong>: hybride E-Rechnung mit EN-16931-XML (UN/CEFACT CII), eingebettet in ein PDF/A-3 – ein Dokument, von Mensch und Maschine lesbar.</li>
         <li><strong>PDF-Erzeugung</strong> für Angebote, Rechnungen, Mahnungen und EÜR – mit Logo und Briefkopf.</li>
         <li><strong>E-Mail-Versand</strong> über SMTP oder <code>mail()</code>, inklusive Signatur und Textvorlagen mit Platzhaltern.</li>
     </ul>
@@ -105,7 +119,8 @@
     <ul>
         <li><strong>Verschlüsselte Backups</strong> (AES-256-ZIP, sofern der Server es unterstützt) aus Datenbank und Uploads.</li>
         <li>Auf Knopfdruck, zusätzlich per E-Mail und/oder ins Serververzeichnis; automatisch per <strong>Cron</strong> (CLI oder token-geschützte Web-URL).</li>
-        <li>Die letzten 14 Backups werden aufbewahrt und lassen sich im Tool herunterladen/löschen.</li>
+        <li><strong>Konfigurierbare Häufigkeit:</strong> Mindestabstand für das Anlegen und ein separates Intervall für den E-Mail-Versand. Die letzten 14 Backups werden aufbewahrt.</li>
+        <li><strong>Wartungs-Cron</strong> (CLI <code>bin/sweep.php</code> oder Web-URL) für wiederkehrende Rechnungen/Ausgaben, AfA-Buchungen, überfällige Rechnungen und Auto-Mahnungen – alle Aufgaben idempotent.</li>
         <li><strong>Self-Update über GitHub:</strong> neue Version per Klick – erst Backup, dann Download/Entpacken, dann Migrationen. Datenbank, <code>config.php</code> und <code>storage/</code> bleiben unangetastet.</li>
     </ul>
 

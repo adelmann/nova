@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nova – Buchhaltung & Business-Tool für Kleingewerbe</title>
 <meta name="description" content="Nova ist ein webbasiertes Buchhaltungs- und Business-Tool für deutsches Kleingewerbe: Angebote, Rechnungen, Ausgaben, EÜR, GoBD-konform. Reines PHP, SQLite, ohne Node – läuft auf einfachem Shared Hosting.">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
 <header class="site">
     <div class="wrap">
-        <a class="brand" href="index.html"><span class="logo">N</span> Nova</a>
+        <a class="brand" href="index.html"><img class="logo" src="assets/nova-icon.png" alt="Nova-Logo"> Nova</a>
         <button class="nav-toggle" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
         <nav class="main" id="nav">
             <a href="index.html">Start</a>
@@ -24,6 +25,7 @@
 
 <section class="hero">
     <div class="wrap">
+        <img class="hero-logo" src="assets/nova-icon.png" alt="Nova-Logo">
         <span class="badge">Open Source · MIT-Lizenz · GoBD-orientiert</span>
         <h1>Buchhaltung für dein <span class="grad">Kleingewerbe</span> – schlank und selbst gehostet</h1>
         <p class="lead">Nova ist ein webbasiertes Business- und Buchhaltungstool für deutsche Kleingewerbe: Kunden, Angebote, Rechnungen, Ausgaben, Belege und Einnahmen-Überschuss-Rechnung. Reines PHP &amp; SQLite – ohne Node, ohne Build-Schritt, deploybar auf einfachem Shared Hosting.</p>
@@ -58,7 +60,7 @@
             <div class="card">
                 <div class="ico">⏰</div>
                 <h3>Mahnwesen &amp; Wiederkehrendes</h3>
-                <p>Mehrstufige Mahnungen als PDF &amp; E-Mail, automatische Zahlungserinnerungen und wiederkehrende Rechnungen.</p>
+                <p>Mehrstufige Mahnungen (mit Mahngebühr &amp; Verzugszinsen), Abschlags-/Schlussrechnungen, Rabatt &amp; Skonto, wiederkehrende Rechnungen.</p>
             </div>
             <div class="card">
                 <div class="ico">💳</div>
@@ -68,7 +70,7 @@
             <div class="card">
                 <div class="ico">📂</div>
                 <h3>Ausgaben &amp; Belege</h3>
-                <p>Ausgaben mit EÜR-Kategorie, Beleg-Upload als Foto oder PDF, CSV-Bankimport mit automatischem Zahlungsabgleich.</p>
+                <p>Ausgaben mit EÜR-Kategorie, Beleg-Upload als Foto oder PDF, wiederkehrende Ausgaben und CSV-Bankimport mit Vorlagen &amp; automatischem Abgleich.</p>
             </div>
             <div class="card">
                 <div class="ico">📊</div>
@@ -77,8 +79,18 @@
             </div>
             <div class="card">
                 <div class="ico">📄</div>
-                <h3>E-Rechnung (XRechnung)</h3>
-                <p>Export als XRechnung-3.0-XML für Aufträge der öffentlichen Hand und B2B-Empfänger, die das elektronische Format verlangen.</p>
+                <h3>E-Rechnung: XRechnung &amp; ZUGFeRD</h3>
+                <p>Export als XRechnung-3.0-XML sowie ZUGFeRD/Factur-X (EN 16931) – das XML eingebettet in ein PDF/A-3, von Mensch und Maschine lesbar.</p>
+            </div>
+            <div class="card">
+                <div class="ico">🏛️</div>
+                <h3>Anlagevermögen &amp; AfA</h3>
+                <p>Anlagegüter mit linearer Abschreibung (pro rata) oder GWG-Sofortabschreibung; die jährliche AfA wird automatisch in die EÜR gebucht.</p>
+            </div>
+            <div class="card">
+                <div class="ico">⏳</div>
+                <h3>Offene Posten &amp; Kennzahlen</h3>
+                <p>Offene-Posten-Liste mit Fälligkeits-Aging, Kunden-Kontoauszug und ein Dashboard mit Liquiditätsvorschau, Zahlungsmethoden und Top-Kunden.</p>
             </div>
             <div class="card">
                 <div class="ico">🔐</div>
