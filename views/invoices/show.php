@@ -52,7 +52,8 @@ $open   = (int) $inv['gross_total_cents'] - (int) $inv['paid_total_cents'];
 <div class="panel">
     <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
         <div>
-            <h2 style="margin:0 0 6px;">Rechnung <?= e($inv['number'] ?: '(Entwurf)') ?></h2>
+            <?php $typeLabel = match ((string) ($inv['invoice_type'] ?? 'standard')) { 'partial' => 'Abschlagsrechnung', 'final' => 'Schlussrechnung', default => 'Rechnung' }; ?>
+            <h2 style="margin:0 0 6px;"><?= e($typeLabel) ?> <?= e($inv['number'] ?: '(Entwurf)') ?></h2>
             <div class="muted">
                 <?= e($inv['company_name'] ?: $inv['contact_name']) ?> · Datum <?= dt($inv['invoice_date']) ?>
                 <?php if ($inv['due_date']): ?> · fällig <?= dt($inv['due_date']) ?><?php endif; ?>

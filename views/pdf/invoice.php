@@ -63,7 +63,8 @@ $isKU = (int) $inv['is_kleinunternehmer'] === 1;
         <?php if (!empty($inv['customer_vat_id'])): ?><br>USt-ID: <?= e($inv['customer_vat_id']) ?><?php endif; ?>
     </div>
 
-    <h1>Rechnung <?= e($inv['number'] ?: '(Entwurf)') ?></h1>
+    <?php $typeLabel = match ((string) ($inv['invoice_type'] ?? 'standard')) { 'partial' => 'Abschlagsrechnung', 'final' => 'Schlussrechnung', default => 'Rechnung' }; ?>
+    <h1><?= e($typeLabel) ?> <?= e($inv['number'] ?: '(Entwurf)') ?></h1>
     <div class="meta">
         Rechnungsdatum: <?= dt($inv['invoice_date']) ?>
         <?php if ($inv['due_date']): ?> &nbsp;·&nbsp; Fällig bis: <?= dt($inv['due_date']) ?><?php endif; ?>

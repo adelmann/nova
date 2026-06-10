@@ -240,6 +240,23 @@ final class InvoiceRepository extends BaseRepository
         return $token;
     }
 
+    /**
+     * Finalisierte, nicht stornierte Abschlagsrechnungen eines Kunden – für den
+     * Abzug in einer Schlussrechnung.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function partialsForCustomer(int $customerId): array
+    {
+        return $this->db()->fetchAll(
+            "SELECT id, number, invoice_date, net_total_cents, vat_total_cents, gross_total_cents
+             FROM invoice
+             WHERE customer_id = :c AND invoice_type = 'partial' AND is_locked = 1 AND status != 'cancelled'
+             ORDER BY invoice_date, id",
+            ['c' => $customerId]
+        );
+    }
+
     /** @return array<string,mixed>|null */
     public function findByPayToken(string $token): ?array
     {

@@ -49,6 +49,8 @@ final class InvoiceController extends Controller
             'items'     => [],
             'customers' => (new CustomerRepository())->forSelect(),
             'projects'  => (new ProjectRepository())->allWithCustomer(),
+            'partials'  => [],
+            'deductedIds' => [],
             'action'    => '/rechnungen',
         ]);
     }
@@ -108,6 +110,8 @@ final class InvoiceController extends Controller
             'items'     => $this->repo->items((int) $invoice['id']),
             'customers' => (new CustomerRepository())->forSelect((int) $invoice['customer_id']),
             'projects'  => (new ProjectRepository())->allWithCustomer(),
+            'partials'  => $this->repo->partialsForCustomer((int) $invoice['customer_id']),
+            'deductedIds' => array_filter(array_map('intval', explode(',', (string) ($invoice['deducted_invoice_ids'] ?? '')))),
             'action'    => '/rechnungen/' . $invoice['id'],
         ]);
     }
@@ -484,11 +488,40 @@ final class InvoiceController extends Controller
             default   => 0,
         };
 
+        // Rechnungstyp + Abschlag-Abzug (Schlussrechnung).
+        $invoiceType = $request->str('invoice_type', 'standard');
+        if (!in_array($invoiceType, ['standard', 'partial', 'final'], true)) {
+            $invoiceType = 'standard';
+        }
+        $deductedIds = [];
+        if ($invoiceType === 'final') {
+            $pos = count($items);
+            foreach ((array) ($request->post['deduct'] ?? []) as $pid) {
+                $partial = $this->repo->find((int) $pid);
+                if ($partial === null || $partial['invoice_type'] !== 'partial' || (int) $partial['is_locked'] !== 1) {
+                    continue;
+                }
+                $net = (int) $partial['net_total_cents'];
+                $items[] = [
+                    'position'         => ++$pos,
+                    'description'      => 'Abzüglich Abschlagsrechnung ' . $partial['number'] . ' vom ' . Format::date($partial['invoice_date']),
+                    'quantity'         => 1.0,
+                    'unit'             => 'Pauschal',
+                    'unit_price_cents' => -$net,
+                    'vat_rate'         => $vatRate,
+                    'line_total_cents' => -$net,
+                ];
+                $deductedIds[] = (int) $partial['id'];
+            }
+        }
+
         $totals = LineItemService::totals($items, $vatRate, $isKU, $discountType, $discountValue);
 
         $header = [
             'customer_id'         => $request->int('customer_id'),
             'project_id'          => $request->int('project_id') ?: null,
+            'invoice_type'        => $invoiceType,
+            'deducted_invoice_ids' => implode(',', $deductedIds),
             'status'              => 'draft',
             'invoice_date'        => $request->str('invoice_date') ?: date('Y-m-d'),
             'service_date_from'   => $request->str('service_date_from') ?: null,
@@ -522,6 +555,7 @@ final class InvoiceController extends Controller
             'net_total_cents' => 0, 'vat_total_cents' => 0, 'gross_total_cents' => 0, 'paid_total_cents' => 0,
             'discount_type' => 'none', 'discount_value' => 0, 'discount_cents' => 0,
             'skonto_percent_bp' => (int) ($settings['skonto_percent_bp'] ?? 0), 'skonto_days' => (int) ($settings['skonto_days'] ?? 0),
+            'invoice_type' => 'standard', 'deducted_invoice_ids' => '',
         ];
     }
 }
