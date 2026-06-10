@@ -50,6 +50,35 @@ final class DashboardController extends Controller
 
         $customerCount = (int) $db->fetchColumn('SELECT COUNT(*) FROM customer');
 
+        // --- Liquiditätsvorschau (nächste 30 Tage) ---
+        $in30 = date('Y-m-d', strtotime('+30 days'));
+        // Erwartete Zuflüsse: offene Forderungen, davon innerhalb 30 Tagen fällig (inkl. überfällig).
+        $receivablesOpen = (int) $db->fetchColumn(
+            "SELECT COALESCE(SUM(gross_total_cents - paid_total_cents),0) FROM invoice
+             WHERE is_locked = 1 AND status IN ('sent','overdue') AND (gross_total_cents - paid_total_cents) > 0"
+        );
+        $inflow30 = (int) $db->fetchColumn(
+            "SELECT COALESCE(SUM(gross_total_cents - paid_total_cents),0) FROM invoice
+             WHERE is_locked = 1 AND status IN ('sent','overdue') AND (gross_total_cents - paid_total_cents) > 0
+               AND (due_date IS NULL OR due_date <= :in30)",
+            ['in30' => $in30]
+        );
+        // Erwartete Abflüsse: offene Ausgaben + fällige Dauerausgaben in 30 Tagen.
+        $payablesOpen = (int) $db->fetchColumn("SELECT COALESCE(SUM(amount_cents),0) FROM expense WHERE status = 'open'");
+        $recurringDue30 = (int) $db->fetchColumn(
+            "SELECT COALESCE(SUM(amount_cents),0) FROM recurring_expense WHERE active = 1 AND next_date <= :in30",
+            ['in30' => $in30]
+        );
+        $outflow30 = $payablesOpen + $recurringDue30;
+        $liquidity = [
+            'receivables_open' => $receivablesOpen,
+            'inflow_30'        => $inflow30,
+            'payables_open'    => $payablesOpen,
+            'recurring_30'     => $recurringDue30,
+            'outflow_30'       => $outflow30,
+            'net_30'           => $inflow30 - $outflow30,
+        ];
+
         // Kleinunternehmer-Umsatzgrenze.
         $settings = (new CompanySettingsRepository())->get();
         $kuActive = (int) $settings['is_kleinunternehmer'] === 1;
@@ -66,6 +95,7 @@ final class DashboardController extends Controller
             'openExpenses'    => $openExpenses,
             'missingReceipts' => $missingReceipts,
             'customerCount'   => $customerCount,
+            'liquidity'       => $liquidity,
             'kuActive'        => $kuActive,
             'kuLimit'         => self::KU_LIMIT_CENTS,
             'kuPercent'       => $kuPercent,
