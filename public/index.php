@@ -22,7 +22,13 @@ $config = require dirname(__DIR__) . '/src/bootstrap.php';
 // Kerndienste initialisieren.
 DB::init($config['db_path']);
 View::setViewsPath($config['paths']['views']);
-Session::start($config['session_name'], $config['session_lifetime'], $config['paths']['sessions']);
+// Fällt auf sinnvolle Defaults zurück, falls eine ältere config.php auf dem
+// Server die neuen Schlüssel (noch) nicht kennt.
+Session::start(
+    $config['session_name'],
+    (int) ($config['session_lifetime'] ?? 60 * 60 * 24 * 30),
+    $config['paths']['sessions'] ?? (($config['paths']['storage'] ?? null) ? $config['paths']['storage'] . '/sessions' : null)
+);
 
 // Konfiguration für Views/Controller global verfügbar machen.
 $GLOBALS['nova_config'] = $config;

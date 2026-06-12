@@ -6,6 +6,7 @@
 /storage/backups/*
 /storage/logos/*
 /storage/cache/*
+/storage/sessions/*
 
 # Ausnahme: leere Verzeichnisse erhalten
 !/storage/**/.gitkeep

@@ -1,4 +1,4 @@
-# Nova <small>v0.9.23</small>
+# Nova <small>v0.9.25</small>
 
 Webbasiertes Business- & Buchhaltungstool für ein deutsches Kleingewerbe –
 Kunden, Angebote, Rechnungen, Ausgaben, Belege und Einnahmen‑Überschuss‑Rechnung
