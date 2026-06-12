@@ -33,6 +33,7 @@ return [
         'migrations' => $root . '/migrations',
         'views'      => $root . '/views',
         'logos'      => $root . '/storage/logos',
+        'sessions'   => $root . '/storage/sessions',
     ],
 
     // Upload-Beschränkungen.
@@ -47,4 +48,7 @@ return [
 
     // Session.
     'session_name' => 'nova_session',
+    // Wie lange ein Login gültig bleibt (Sekunden). Default: 30 Tage.
+    // Das Fenster ist gleitend: Solange man die Anwendung nutzt, bleibt man angemeldet.
+    'session_lifetime' => (int) (getenv('NOVA_SESSION_LIFETIME') ?: 60 * 60 * 24 * 30),
 ];

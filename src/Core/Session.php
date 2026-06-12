@@ -9,19 +9,48 @@ namespace Nova\Core;
  */
 final class Session
 {
-    public static function start(string $name): void
+    public static function start(string $name, int $lifetime = 0, ?string $savePath = null): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             return;
         }
+
+        // Eigener Speicherpfad isoliert unsere Sessions von der Garbage-Collection
+        // anderer Anwendungen auf Shared Hosting – eine häufige Ursache dafür, dass
+        // man trotzdem vorzeitig abgemeldet wird.
+        if ($savePath !== null && is_dir($savePath) && is_writable($savePath)) {
+            session_save_path($savePath);
+        }
+
+        // Serverseitige Lebensdauer der Session-Daten an die gewünschte Dauer angleichen.
+        if ($lifetime > 0) {
+            ini_set('session.gc_maxlifetime', (string) $lifetime);
+        }
+
         session_name($name);
         session_set_cookie_params([
+            'lifetime' => $lifetime,
             'httponly' => true,
             'samesite' => 'Lax',
             'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
             'path'     => '/',
         ]);
         session_start();
+
+        // Gleitendes Fenster: Bei jeder Aktivität wird das Ablaufdatum des Cookies
+        // erneuert, damit aktive Nutzer nicht nach Ablauf des ursprünglichen
+        // Login-Fensters herausfallen.
+        if ($lifetime > 0 && !headers_sent()) {
+            $p = session_get_cookie_params();
+            setcookie($name, session_id(), [
+                'expires'  => time() + $lifetime,
+                'path'     => $p['path'],
+                'domain'   => $p['domain'],
+                'secure'   => $p['secure'],
+                'httponly' => $p['httponly'],
+                'samesite' => $p['samesite'] ?? 'Lax',
+            ]);
+        }
     }
 
     public static function get(string $key, mixed $default = null): mixed

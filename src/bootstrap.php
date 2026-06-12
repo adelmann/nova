@@ -37,7 +37,7 @@ require __DIR__ . '/helpers.php';
 $config = require dirname(__DIR__) . '/config.php';
 
 // Sicherstellen, dass Speicherverzeichnisse existieren.
-foreach (['storage', 'receipts', 'invoices', 'backups', 'logos'] as $key) {
+foreach (['storage', 'receipts', 'invoices', 'backups', 'logos', 'sessions'] as $key) {
     $dir = $config['paths'][$key] ?? null;
     if ($dir !== null && !is_dir($dir)) {
         @mkdir($dir, 0775, true);
